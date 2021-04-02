@@ -24,6 +24,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -61,13 +62,16 @@ public class MyProductLayoutController implements Initializable {
     
     @FXML
     void actionRegisterProduct(ActionEvent event) {
-    	showRegisterProductDialog();
+    	mainApp.showRegisterProductDialog();
     }
 
-    
+    @FXML
+    private void onClickedTable(MouseEvent event) {
+    	mainApp.showBuyProductDialog();
+    }
     @FXML
     void actionSearch(ActionEvent event) {
-        try{
+        try {
             if (attributeList.getValue().equals("Show everyone")){
             	loadProduct(true);
             }else{
@@ -126,32 +130,7 @@ public class MyProductLayoutController implements Initializable {
 		 */
     }    
     
-    private boolean showRegisterProductDialog() {
-    	try {
-			FXMLLoader loader = new FXMLLoader();
-	
-			loader.setLocation(MainApp.class.getResource("view/fxml/RegisterProductLayout.fxml"));
-
-			AnchorPane page = (AnchorPane) loader.load();
-			Stage stageRegProduct = new Stage();
-			stageRegProduct.initOwner(txtSearch.getScene().getWindow());
-			
-			Scene scene = new Scene(page);
-			stageRegProduct.setScene(scene);
-			stageRegProduct.getIcons().add(new Image(getClass().getResourceAsStream("/resources/images/adicionar.png")));
-
-			RegisterProductLayoutController controller = loader.getController();
-			controller.setDialogStage(stageRegProduct);
-			//controller.setPerson(person);
-
-			stageRegProduct.showAndWait();
-			return true;
-			//return controller.isOkClicked();
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		}
-    }
+    
     public boolean loadProduct(boolean cleanTable){
         
         try {

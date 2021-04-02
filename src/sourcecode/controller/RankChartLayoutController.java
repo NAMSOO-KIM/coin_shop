@@ -16,11 +16,7 @@ import sourcecode.model.Person;
 import sourcecode.util.DateUtil;
 import sourcecode.model.DAO;
 
-/**
- * FXML Controller class
- * 
- * @author Fábio Augusto Rodrigues
- */
+
 public class RankChartLayoutController implements Initializable {
     
     @FXML

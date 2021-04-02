@@ -55,7 +55,7 @@
                </graphic></Button>
          </children>
       </HBox>
-      <TableView fx:id="productTable" layoutX="14.0" layoutY="59.0" prefHeight="250.0" prefWidth="620.0">
+      <TableView fx:id="productTable" layoutX="14.0" layoutY="59.0" onMouseClicked="#onClickedTable" prefHeight="250.0" prefWidth="620.0">
         <columns>
           <TableColumn fx:id="columnImage" prefWidth="98.0" text="사진" />
           <TableColumn fx:id="columnProductName" prefWidth="183.0" text="물품명" />

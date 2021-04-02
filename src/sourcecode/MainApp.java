@@ -14,9 +14,10 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import sourcecode.controller.BuyProductLayoutController;
 import sourcecode.controller.LoginLayoutController;
 import sourcecode.controller.RegisterMemberDialogController;
-
+import sourcecode.controller.RegisterProductLayoutController;
 import sourcecode.model.Person;
 
 import sourcecode.controller.RootLayoutController;
@@ -117,7 +118,58 @@ public class MainApp extends Application {
 		return true;
 	}
 
+	public boolean showBuyProductDialog() {
+		try {
+			FXMLLoader loader = new FXMLLoader();
 	
+			loader.setLocation(MainApp.class.getResource("view/fxml/BuyProductLayout.fxml"));
+
+			AnchorPane page = (AnchorPane) loader.load();
+			Stage stageBuyProduct = new Stage();
+			stageBuyProduct.initOwner(primaryStage.getScene().getWindow());
+			
+			Scene scene = new Scene(page);
+			stageBuyProduct.setScene(scene);
+			stageBuyProduct.getIcons().add(new Image(getClass().getResourceAsStream("/resources/images/adicionar.png")));
+
+			BuyProductLayoutController controller = loader.getController();
+			controller.setDialogStage(stageBuyProduct);
+			//controller.setPerson(person);
+
+			stageBuyProduct.showAndWait();
+			return true;
+			//return controller.isOkClicked();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	public boolean showRegisterProductDialog() {
+    	try {
+			FXMLLoader loader = new FXMLLoader();
+	
+			loader.setLocation(MainApp.class.getResource("view/fxml/RegisterProductLayout.fxml"));
+
+			AnchorPane page = (AnchorPane) loader.load();
+			Stage stageRegProduct = new Stage();
+			stageRegProduct.initOwner(primaryStage.getScene().getWindow());
+			
+			Scene scene = new Scene(page);
+			stageRegProduct.setScene(scene);
+			stageRegProduct.getIcons().add(new Image(getClass().getResourceAsStream("/resources/images/adicionar.png")));
+
+			RegisterProductLayoutController controller = loader.getController();
+			controller.setDialogStage(stageRegProduct);
+			//controller.setPerson(person);
+
+			stageRegProduct.showAndWait();
+			return true;
+			//return controller.isOkClicked();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+    }
 
 	public static void main(String[] args) {
 		launch(args);
