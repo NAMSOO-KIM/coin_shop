@@ -12,15 +12,20 @@ DROP TABLE customer CASCADE CONSTRAINTS;
 DROP TABLE product CASCADE CONSTRAINTS;
 DROP TABLE shipment CASCADE CONSTRAINTS;
 DROP TABLE shipment_company CASCADE CONSTRAINTS;
-DROP TABLE "order" CASCADE CONSTRAINTS;
 DROP TABLE orders CASCADE CONSTRAINTS;
 DROP TABLE category CASCADE CONSTRAINTS;
 
 -- 시퀀스 삭제
 
+drop sequence customer_id_seq;
+drop sequence product_id_seq;
+drop sequence ORDERS_id_seq;
 drop sequence shipment_id_seq;
+drop sequence shipment_company_id_seq;
+drop sequence category_id_seq;
 
 
+-- shipment_id_idx, shipment_product_id_idx, shipment_shipment_company_id_idx
 
 -------------------------------------------------------
 CREATE SEQUENCE customer_id_seq
@@ -69,6 +74,7 @@ MINVALUE 1
 MAXVALUE 999999999
 NOCYCLE;
 -------------------------------------------------------
+
 CREATE TABLE category (
     id    NUMBER(9) NOT NULL,
     name  VARCHAR2(50 CHAR) NOT NULL
@@ -78,7 +84,20 @@ ON category(id);
 
 ALTER TABLE category
 ADD CONSTRAINT category_id_pk PRIMARY KEY(id);
+
+-- 샘플 데이터 삽입
+insert into category values(1,'clothing');
+insert into category values(2,'digital');
+insert into category values(3,'furniture');
+insert into category values(4,'book');
+insert into category values(5,'etc');
+commit;
+--insert into product values(1,1,'asdf','124',123,1,'의류',1);
+
 -------------------------------------------------------
+
+
+
 CREATE TABLE customer (
     id                      NUMBER(9) NOT NULL,
     name                    VARCHAR2(20 CHAR) NOT NULL,
@@ -95,6 +114,14 @@ ON customer(id);
 
 ALTER TABLE customer
 ADD CONSTRAINT customer_id_pk PRIMARY KEY(id);
+
+
+-- 샘플 데이터
+insert into customer values(1,'namsoo','1234','zipcode~!~!','01012345678',1300,13);
+insert into customer values(2,'hong','1234','zipcooood','01052141421',1000,10);
+insert into customer values(3,'han','1234','zipcoding~~~~','01011112222',1100,1);
+commit;
+
 -------------------------------------------------------
 CREATE TABLE shipment_company (
     id    NUMBER(9) NOT NULL,
@@ -104,7 +131,54 @@ LOGGING;
 
 ALTER TABLE shipment_company ADD CONSTRAINT shipment_company_id_pk PRIMARY KEY ( id );
 
+-- 샘플 데이터
+
+insert into shipment_company values(1,'hangin');
+insert into shipment_company values(2,'Lotte');
+insert into shipment_company values(3,'CJ');
+commit;
+
 -------------------------------------------------------
+
+create table PRODUCT (
+  id       number(9) NOT NULL,
+  customer_id      number(9) NOT NULL,
+  name             varchar2(50) NOT NULL,
+  infomation       varchar2(200 CHAR),
+  price            number(9) NOT NULL,
+  category_id      number(9) NOT NULL,
+  category_name    varchar2(50) NOT NULL, -- 새로 추가됨
+  product_status   VARCHAR2(10 CHAR) NOT NULL, --판매 상태 정보 추가 (READY,ORDER)
+  shipment_id      number(9) NOT NULL
+  )
+partition by list(category_id)
+(
+  --partition P_CLOTHING    values ('clothing','fashion'),
+  partition P_CLOTHING    values (1,2),
+  --partition P_DIGITAL    values ('digital','home appliances'),
+  partition P_DIGITAL    values (3,4),
+  --partition P_FURNITURE   values ('furniture','interior'),
+  partition P_FURNITURE   values (5,6),
+  --partition P_BOOK    values ('book,ticket'),
+  partition P_BOOK    values (7,8),
+  --partition P_ETC    values ('etc','unknown')
+  partition P_ETC    values (9,10)
+  --partition P_ETC values (default)
+);
+
+
+-- 샘플 데이터
+
+insert into PRODUCT values(1,1,'충전기 팔아요','충전기 저렴하게 판매합니다.',800,2,'digital','READY',1);
+insert into PRODUCT values(2,2,'옷 팝니다','옷 팔아요.택만 제거하고 한번도 안입었어요',1000,1,'clothing','READY',2);
+insert into PRODUCT values(3,2,'두번째 옷 팔아연~!~!','두번 입음.',100,1,'clothing','READY',3);
+
+commit;
+
+-- 샘플데이터
+-- insert into product values(1,1,'asdf','124',123,1,'의류',1);
+
+"""
 CREATE TABLE product (
     id           NUMBER(9) NOT NULL,
     customer_id  NUMBER(9) NOT NULL,
@@ -113,9 +187,12 @@ CREATE TABLE product (
     price        NUMBER(9) NOT NULL,
     category_id  NUMBER(9) NOT NULL,
     category_name VARCHAR2(50 CHAR) NOT NULL, -- 새로 추가됨 (카테고리 명)
-	status VARCHAR2(10 CHAR) NOT NULL, --판매 상태 정보 추가 (READY,ORDER)
+	status VARCHAR2(10 CHAR) NOT NULL, --판매 상태 정보 추가 (READY,FINISH)
     shipment_id  NUMBER(9) NOT NULL
 );
+"""
+
+
 
 
 CREATE INDEX product_id_idx
@@ -165,6 +242,7 @@ CREATE TABLE shipment (
     product_customer_id     NUMBER(9) NOT NULL
 )
 LOGGING;
+--인덱스 shipment_id_idx, shipment_product_id_idx, shipment_shipment_company_id_idx
 CREATE INDEX shipment_id_idx
 ON shipment(id);
 
@@ -178,7 +256,9 @@ ALTER TABLE shipment ADD CONSTRAINT shipment_id_pk PRIMARY KEY(id);
 
 ALTER TABLE shipment
 ADD CONSTRAINT shipment_product_id_nn
-CHECK (product_id is not null); -- 1:1 mandetory not null, unique �Ӽ�, fk
+CHECK (product_id is not null); 
+
+-- 1:1 mandetory not null, unique �Ӽ�, fk
 
 ALTER TABLE shipment
 ADD CONSTRAINT shipment_product_id UNIQUE(product_id);
@@ -196,6 +276,87 @@ ADD CONSTRAINT shipment_product_id UNIQUE(product_id);
 -- REFERENCES product(id, customer_id);
 
 
+------------------------
+---해보기------------------------
+
+
+CREATE TABLE temp_shipment (
+    id                      NUMBER(9) NOT NULL,
+    name                    VARCHAR2(50 CHAR) NOT NULL,
+    estimated_arrival_date  DATE,
+    shipment_company_id     NUMBER(9) NOT NULL,
+    product_id              NUMBER(9) NOT NULL,
+    product_customer_id     NUMBER(9) NOT NULL
+)
+LOGGING;
+--인덱스 shipment_id_idx, shipment_product_id_idx, shipment_shipment_company_id_idx
+CREATE INDEX shipment_id_idx
+ON temp_shipment(id);
+
+CREATE INDEX shipment_product_id_idx
+ON temp_shipment(product_id);
+
+CREATE INDEX shipment_shipment_company_id_idx
+ON temp_shipment(shipment_company_id);
+
+ALTER TABLE temp_shipment ADD CONSTRAINT shipment_id_pk PRIMARY KEY(id);
+
+ALTER TABLE temp_shipment
+ADD CONSTRAINT shipment_product_id_nn
+CHECK (product_id is not null); 
+
+-- 1:1 mandetory not null, unique �Ӽ�, fk
+
+ALTER TABLE temp_shipment
+ADD CONSTRAINT shipment_product_id UNIQUE(product_id);
+
+-------------------------------------------------------------------
+
+------------------------
+-- 클러스터 생성
+
+create cluster shipment_clu
+(shipment_id number(9))
+size 1k
+tablespace users;
+
+-- 클러스터용 인덱스 생성
+create index shipment_index
+on cluster shipment_clu;
+
+
+
+-- 테이블을 클러스터 안에 생성
+create table shipment
+cluster shipment_clu(id)
+as
+select * from temp_shipment;
+commit;
+
+-- 이름 바꾸기
+--rename temp_shipment to old_shipment;
+--rename shipment to temp_shipment;
+
+-- 테이블에 추가 인덱스 생성
+create index shipment_id_clu_idx
+on shipment(id);
+
+
+
+-- 배송에 대한 샘플 데이터
+insert into shipment values(1,'name필드 있어야하나연?','2021-04-02',1,1,2);
+commit;
+
+
+-- 샘플 데이터 삽입
+--insert into shipment values(1,'asdf','20200120',1,1,1);
+-------------------------------------------------------------------
+-------------------------------------------------------------------
+-------------여기부터 다시 시작----------------
+-------------------------------------------------------------------
+-------------------------------------------------------------------
+-------------------------------------------------------------------
+
 -------------------------------------------------------
 -- product ���̺��� ���� �������� �߰�
 ALTER TABLE product
@@ -204,6 +365,64 @@ FOREIGN KEY(shipment_id) REFERENCES shipment(id)
 deferrable initially deferred;
 
 -------------------------------------------------------
+-- ORDER
+
+
+CREATE TABLE ORDERS (
+    id                   NUMBER(9) NOT NULL,
+    contract_date        DATE NOT NULL,
+    customer_id          NUMBER(9) NOT NULL,
+    product_id           NUMBER(9) NOT NULL,
+    product_customer_id  NUMBER(9) NOT NULL,
+
+    PRIMARY KEY(id, customer_id, product_id, product_customer_id)
+)ORGANIZATION INDEX;
+
+-- 오류 발생 시     set sqlblanklines on 
+
+CREATE INDEX ORDERS_id_idx
+ON ORDERS(id);
+
+CREATE INDEX ORDERS_customer_buyer_id_idx
+ON ORDERS(customer_id);
+
+CREATE INDEX ORDERS_product_id_idx
+ON ORDERS(product_id);
+
+-- ALTER TABLE ORDERS
+-- ADD CONSTRAINT ORDERS_id_pk PRIMARY KEY(id);
+
+"""
+이부분 복합키에 외래키가 포함되도록..
+
+
+외래키만 지정할 경우. 식별 값이 없어도 테이블에 삽입이 가능해서.
+
+"""
+ALTER TABLE ORDERS
+ADD CONSTRAINT ORDERS_customer_buyer_id_fk FOREIGN KEY(customer_id)
+REFERENCES customer(id);
+
+ALTER TABLE ORDERS
+ADD CONSTRAINT ORDERS_product_id_fk FOREIGN KEY (product_id, product_customer_id)
+REFERENCES product(id, customer_id);
+
+---------------------
+-- 데이터 삽입
+
+"""
+insert into customer values(1,'김남수','1234','1234','01021091323',123,12);
+insert into category values(1,'의류');
+insert into product values(1,1,'김남수','12441',123,1,1);
+insert into orders values(1,'20190210',1,1,1);
+select * from orders;
+select * from product;
+
+"""
+
+"""
+이전 코드
+
 CREATE TABLE ORDERS (
     id                   NUMBER(9) NOT NULL,
     contract_date        DATE NOT NULL,
@@ -231,6 +450,7 @@ REFERENCES customer(id);
 ALTER TABLE ORDERS
 ADD CONSTRAINT ORDERS_product_id_fk FOREIGN KEY (product_id, product_customer_id)
 REFERENCES product(id, customer_id);
+"""
 -------------------------------------------------------
 
 
