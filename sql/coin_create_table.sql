@@ -85,7 +85,17 @@ ON category(id);
 ALTER TABLE category
 ADD CONSTRAINT category_id_pk PRIMARY KEY(id);
 
+<<<<<<< HEAD:sql/coin_create_table.sql
 
+=======
+-- 샘플 데이터 삽입
+--insert into category values(1,'clothing');
+--insert into category values(2,'digital');
+--insert into category values(3,'furniture');
+--insert into category values(4,'book');
+--insert into category values(5,'etc');
+--commit;
+>>>>>>> main:sql/coin_20210402.sql
 --insert into product values(1,1,'asdf','124',123,1,'의류',1);
 
 -------------------------------------------------------

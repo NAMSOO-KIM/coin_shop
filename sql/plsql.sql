@@ -355,13 +355,39 @@ BEGIN
 	-- product customer id 판매자
 	
 	
-	insert into shipment(id, shipment_company_id, product_id, PRODUCT_CUSTOMER_ID)
+	insert into shipment(id,shipment_company_id,product_id, PRODUCT_CUSTOMER_ID)
 	values(ship_id, shipcom_id, product_id, customer_id);
 	
 	commit;
 	
 END; 
 /
+
+<<<<<<< HEAD
+=======
+exec product_insert(1,'충전기 또 팔아연', '좋아요 이거', 1000, 'clothing','hangin');
+
+--------------------------------------------------------------------------
+-- 물품 구매 (마일리지 차감)
+CREATE OR REPLACE PROCEDURE buy_item
+(
+	
+	p_id IN product.id%Type,
+	p_price IN product.price%Type,
+    c_id IN customer.id%TYPE,
+	update_coin IN customer.coin%Type
+)	
+IS
+BEGIN  
+	
+	update product set PRODUCT_STATUS = 'PROGRESS' where p_id = id;
+	update customer set coin = update_coin where c_id = id;
+	
+END ;
+/
+
+exec buy_item(1,1,1,777);
+
 
 -----------------------------------------------------------------------------
 -- 수령 확인 버튼(미완성)
@@ -370,7 +396,8 @@ END;
 
 CREATE OR REPLACE PROCEDURE product_accept
 (
-    p_id IN product.id%TYPE;
+    p_id IN product.id%TYPE,
+	
 )	
 IS
 BEGIN  
