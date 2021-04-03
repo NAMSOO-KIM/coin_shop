@@ -147,10 +147,38 @@ END;
 --                          메인 페이지                                     --
 -----------------------------------------------------------------------------
 
+
 -- 전체 글 조회 프로시저
 -- 카테고리 별 조회 프로시저
 -- 제품 상세정보
 -- 카테고리 별 조회--
+
+-- 시작 시 모든 물품 조회
+
+CREATE OR REPLACE procedure ALL_product
+(
+	ALL_PRODUCT_record  OUT 		SYS_REFCURSOR
+)
+AS
+BEGIN
+OPEN ALL_PRODUCT_record FOR
+SELECT p.id,p.name,p.price, c.name, p.category_name, p.product_status, sp.name
+FROM product p
+INNER JOIN customer c on p.customer_id = c.id
+INNER JOIN shipment s on p.shipment_id = s.id
+INNER JOIN shipment_company sp on sp.id = s.shipment_company_id;
+END;
+/
+
+
+-- 실행
+var  ALL_P refcursor;
+exec ALL_product(:ALL_P);
+print ALL_P;
+
+
+--TO DO 
+-- 제품 구매하기
 """
 -- 샘플데이터
 INSERT INTO PRODUCT(id,CUSTOMER_ID,NAME,INFORMATION,PRICE,CATEGORY_ID, SHIPMENT_ID)
@@ -236,7 +264,61 @@ var pro_detail refcursor;
 exec product_detail(1,:pro_datail)
 print pro_detail;
 
--- 
+-----------------------------------------------------------------------------
+-- 제품 구매하기
+
+-- 에러
+CREATE OR REPLACE PROCEDURE Buy_item
+(
+
+	--orders 테이블
+	-- id, contract_date, customer_id, product_id, product_customer_id
+	
+	p_id IN product.id%TYPE,
+	
+	contracte_date IN orders.contract_date%TYPE,
+	customer_id IN orders.customer_id%TYPE,
+	
+	p_c_id IN customer.product_customer_id%TYPE,
+	price IN product.price%TYPE,
+	
+	possible OUT NUMBER -- 0: 불가능, 1: 가능
+
+)
+IS
+ C_COIN NUMBER
+BEGIN
+  
+  C_COIN:=(select coin from customer where id=customer_id);
+  
+  IF price >= C_COIN THEN
+	
+	-- 구매 가능
+	
+    --주문 테이블에 데이터 넣기 
+    INSERT INTO ORDERS(id,contract_date,customer_id,product_id,product_customer_id)
+	VALUES(ORDERS_id_seq.nextval,contracte_date, customer_id, p_id, p_c_id);
+	
+	-- 고객 테이블 마일리지 차감
+	UPDATE CUSTOMER SET coin = coin-price where id = customer_id;
+	possible := 1 ; 
+    
+  ELSE
+    possible := 0 ;
+	
+  END IF;
+  
+END ;
+/
+
+-- 실행
+VAR R NUMBER;
+EXEC customer_insert_version2('sadgs','cabw','asdfaseg','1231',1241,132,:R);
+PRINT R;  -- 1 리턴되면 회원가입 성공, 0일때 회원가입 실패
+
+
+
+
 
 
 -----------------------------------------------------------------------------
@@ -409,6 +491,35 @@ var ship_com_all refcursor;
 exec shipment_company_allbox(:ship_com_all);
 print ship_com_all;
 
+/* 카테고리 목록 가져오기 */
+
+CREATE OR REPLACE procedure get_category_info(record_list OUT SYS_REFCURSOR)
+AS
+BEGIN
+OPEN record_list FOR
+SELECT *
+FROM category;
+END;
+/
+
+/* 실행 Test */
+var p_all refcursor;
+exec get_category_info(:p_all);
+print p_all;
+
+/* 택배회사 목록 가져오기 */
+CREATE OR REPLACE procedure get_company_info(record_list OUT SYS_REFCURSOR)
+AS
+BEGIN
+OPEN record_list FOR
+SELECT *
+FROM shipment_company;
+END;
+/
+
+var p_all refcursor;
+exec get_company_info(:p_all);
+print p_all
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------

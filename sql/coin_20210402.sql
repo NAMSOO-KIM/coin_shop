@@ -6,7 +6,8 @@
 
 
 -- predefined type, no DDL - MDSYS.SDO_GEOMETRY
-
+-- db 접속 
+-- sqlplus coin/shop@localhost:1521/xepdb1
 -- predefined type, no DDL - XMLTYPE
 DROP TABLE customer CASCADE CONSTRAINTS;
 DROP TABLE product CASCADE CONSTRAINTS;
@@ -85,13 +86,14 @@ ON category(id);
 ALTER TABLE category
 ADD CONSTRAINT category_id_pk PRIMARY KEY(id);
 
+
 -- 샘플 데이터 삽입
-insert into category values(1,'clothing');
-insert into category values(2,'digital');
-insert into category values(3,'furniture');
-insert into category values(4,'book');
-insert into category values(5,'etc');
-commit;
+--insert into category values(1,'clothing');
+--insert into category values(2,'digital');
+--insert into category values(3,'furniture');
+--insert into category values(4,'book');
+--insert into category values(5,'etc');
+--commit;
 --insert into product values(1,1,'asdf','124',123,1,'의류',1);
 
 -------------------------------------------------------
@@ -117,10 +119,10 @@ ADD CONSTRAINT customer_id_pk PRIMARY KEY(id);
 
 
 -- 샘플 데이터
-insert into customer values(1,'namsoo','1234','zipcode~!~!','01012345678',1300,13);
-insert into customer values(2,'hong','1234','zipcooood','01052141421',1000,10);
-insert into customer values(3,'han','1234','zipcoding~~~~','01011112222',1100,1);
-commit;
+--insert into customer values(1,'namsoo','1234','zipcode~!~!','01012345678',1300,13);
+--insert into customer values(2,'hong','1234','zipcooood','01052141421',1000,10);
+--insert into customer values(3,'han','1234','zipcoding~~~~','01011112222',1100,1);
+--commit;
 
 -------------------------------------------------------
 CREATE TABLE shipment_company (
@@ -133,10 +135,10 @@ ALTER TABLE shipment_company ADD CONSTRAINT shipment_company_id_pk PRIMARY KEY (
 
 -- 샘플 데이터
 
-insert into shipment_company values(1,'hangin');
-insert into shipment_company values(2,'Lotte');
-insert into shipment_company values(3,'CJ');
-commit;
+--insert into shipment_company values(1,'hangin');
+--insert into shipment_company values(2,'Lotte');
+--insert into shipment_company values(3,'CJ');
+--commit;
 
 -------------------------------------------------------
 
@@ -169,11 +171,11 @@ partition by list(category_id)
 
 -- 샘플 데이터
 
-insert into PRODUCT values(1,1,'충전기 팔아요','충전기 저렴하게 판매합니다.',800,2,'READY',1);
-insert into PRODUCT values(2,2,'옷 팝니다','옷 팔아요.택만 제거하고 한번도 안입었어요',1000,1,'READY',2);
-insert into PRODUCT values(3,2,'두번째 옷 팔아연~!~!','두번 입음.',100,1,'READY',3);
+--insert into PRODUCT values(1,1,'충전기 팔아요','충전기 저렴하게 판매합니다.',800,2,'READY',1);
+--insert into PRODUCT values(2,2,'옷 팝니다','옷 팔아요.택만 제거하고 한번도 안입었어요',1000,1,'READY',2);
+--insert into PRODUCT values(3,2,'두번째 옷 팔아연~!~!','두번 입음.',100,1,'READY',3);
 
-commit;
+--commit;
 
 -- 샘플데이터
 -- insert into product values(1,1,'asdf','124',123,1,'의류',1);
@@ -235,8 +237,6 @@ REFERENCES customer(id);
 -------------------------------------------------------
 CREATE TABLE shipment (
     id                      NUMBER(9) NOT NULL,
-    --name                    VARCHAR2(50 CHAR) NOT NULL,
-    --estimated_arrival_date  DATE,
     shipment_company_id     NUMBER(9) NOT NULL,
     product_id              NUMBER(9) NOT NULL,
     product_customer_id     NUMBER(9) NOT NULL
@@ -344,8 +344,8 @@ on shipment(id);
 
 
 -- 배송에 대한 샘플 데이터
-insert into shipment values(1,1,1,2);
-commit;
+--insert into shipment values(1,1,1,2);
+--commit;
 
 
 -- 샘플 데이터 삽입
@@ -358,7 +358,7 @@ commit;
 -------------------------------------------------------------------
 
 -------------------------------------------------------
--- product ���̺��� ���� �������� �߰�
+-- product 
 ALTER TABLE product
 ADD CONSTRAINT product_shipment_id_fk
 FOREIGN KEY(shipment_id) REFERENCES shipment(id)
