@@ -1,5 +1,35 @@
 -- PL/SQL
 
+-- ctrl + f 로 해당 프로시저 검색
+
+-- 회원가입----------------------------------
+-- 고객 아이디 중복 체크 프로시저
+-- 회원 가입 프로시저
+
+-- 로그인 ----------------------------------
+-- 로그인 프로시저
+-- customer 정보 받아오기
+
+-- 메인 페이지 --------------------------------
+-- 전체 글 조회 프로시저
+-- 카테고리 별 조회 프로시저
+-- 제품 상세정보
+-- 카테고리 별 조회
+-- 물품 구매( 마일리지 차감)
+
+
+-- 마이페이지 -------------------------------
+-- 내가 올린 상품 보기 
+-- 물품 등록 		
+-- 수령 확인 버튼(미완성)
+-- 카테고리 리스트 박스
+-- 배송회사 리스트 박스
+-- 내가 판매중인 물품
+-- 내가 구매중인 물품
+
+-- 차트 페이지 --------------------------
+-- 전체 상품 마일리지 랭킹
+
 
 -----------------------------------------------------------------------------
 --                          회원가입                                        --
@@ -37,13 +67,6 @@ print R
 -----------------------------------------------------------------------------
 
 -- 회원 가입 프로시저
-"""
-
-1. OUTPUT PARAM을 이용해 APP에 결과 통보
-possible이 1이면 가입 가능
-		  0이면 가입 불가능
-"""
--- 시퀀스.nextval 로 자동 입력
 
 CREATE OR REPLACE PROCEDURE customer_insert_version2
 (
@@ -83,6 +106,7 @@ PRINT R;  -- 1 리턴되면 회원가입 성공, 0일때 회원가입 실패
 -----------------------------------------------------------------------------
 --                          로그인                                        --
 -----------------------------------------------------------------------------
+-- 로그인 프로시저
 CREATE OR REPLACE PROCEDURE customer_login_check
 (
   c_name IN customer.name%TYPE,
@@ -151,6 +175,8 @@ END;
 -- 카테고리 별 조회 프로시저
 -- 제품 상세정보
 -- 카테고리 별 조회--
+-- 물품 구매( 마일리지 차감)
+
 """
 -- 샘플데이터
 INSERT INTO PRODUCT(id,CUSTOMER_ID,NAME,INFORMATION,PRICE,CATEGORY_ID, SHIPMENT_ID)
@@ -209,10 +235,6 @@ exec select_category(1,1,'clothing',:category_select);
 print category_select;
 
 
--- 샘플 데이터
---insert into product(id,customer_id,name,information,price,category_id,category_name,product_status,shipment_id)
---values (1,1,'asdf','asgsds',1300,1,'clothing','READY',1);
-
 
 -----------------------------------------------------------------------------
 -- 제품 상세정보
@@ -236,8 +258,25 @@ var pro_detail refcursor;
 exec product_detail(1,:pro_datail)
 print pro_detail;
 
--- 
-
+------------------------------------------------------------------------------------------
+-- 물품 구매( 마일리지 차감)
+CREATE OR REPLACE PROCEDURE buy_item
+(
+	
+	p_id IN product.id%Type,
+	p_price IN product.price%Type,
+    c_id IN customer.id%TYPE,
+	update_coin IN customer.coin%Type
+)	
+IS
+BEGIN
+	
+	update product set PRODUCT_STATUS = 'PROGRESS' where p_id = id;
+	update customer set coin = update_coin where c_id = id;
+	
+END ;
+/
+exec buy_item(1,1,1,777);
 
 -----------------------------------------------------------------------------
 
@@ -245,14 +284,15 @@ print pro_detail;
 --                          마이 페이지                                     --
 -----------------------------------------------------------------------------
 
------------------
--- 내가 올린 상품 보기 |
--- 물품 등록 		|
--- 수령 확인 버튼	|
--- 카테고리 리스트 박스	|
--- 배송회사 리스트 박스	|
------------------
+-- 내가 올린 상품 보기 
+-- 물품 등록 		
+-- 수령 확인 버튼(미완성)
+-- 카테고리 리스트 박스
+-- 배송회사 리스트 박스
+-- 내가 판매중인 물품
+-- 내가 구매중인 물품
 
+--------------------------------------------------------------------------------
 -- 내가 올린 상품 보기
 CREATE OR REPLACE procedure customer_sell_product
 (
@@ -276,17 +316,6 @@ print category_select;
 ------------------------------------------------------------------------------------
 -- 물품 등록
 
-"""
---샘플 데이터 등록 (택배회사 정보)
-
--- insert into shipment(id,name,ESTIMATED_ARRIVAL_DATE,SHIPMENT_COMPANY_ID,PRODUCT_ID,PRODUCT_CUSTOMER_ID)
--- values (1,'hangin','2013-02-12',1,1,1);
-"""
-
-
-
-
- -- 최신버전
 CREATE OR REPLACE PROCEDURE product_insert
 (
 
@@ -306,8 +335,6 @@ IS
 	
 BEGIN
 
-	--INSERT INTO category(id,name)
-	
 	--- category 아이디 변수로 저장
 	SELECT id INTO category_id
 	FROM category
@@ -336,6 +363,7 @@ BEGIN
 END; 
 /
 
+<<<<<<< HEAD
 exec product_insert(1,'충전기 또 팔아연', '좋아요 이거', 1000, 'clothing','hangin');
 
 --------------------------------------------------------------------------
@@ -363,8 +391,6 @@ exec buy_item(1,1,1,777);
 -----------------------------------------------------------------------------
 -- 수령 확인 버튼(미완성)
 
-
-
 -- 현재 거래중인 물품만 수령확인 가능(문자열 일치 비교), procedure에서는 update만
 
 CREATE OR REPLACE PROCEDURE product_accept
@@ -383,7 +409,7 @@ END ;
 /
 
 
-
+--------------------------------------------------------
 -- 카테고리 리스트 박스
 
 CREATE OR REPLACE procedure category_allbox
@@ -402,14 +428,8 @@ var category_all refcursor;
 exec category_allbox(:category_all);
 print category_all;
 
--- 샘플 데이터
---insert into category(id,name) values(2,'book');
 
---실행
-var category_all refcursor;
-exec category_allbox(:category_all);
-print category_all;
-
+--------------------------------------------------------
 -- 배송회사 리스트 박스
 
 CREATE OR REPLACE procedure shipment_company_allbox
@@ -427,6 +447,62 @@ END;
 var ship_com_all refcursor;
 exec shipment_company_allbox(:ship_com_all);
 print ship_com_all;
+
+
+
+
+
+--------------------------------------------------
+-- 내가 판매중인 물품
+
+CREATE OR REPLACE PROCEDURE mysell_product
+(
+
+	c_id IN customer.id%TYPE, -- 고객 id
+	mysell_list_record OUT SYS_REFCURSOR
+	
+)
+IS 	
+BEGIN
+	
+	--INSERT INTO category(id,name)	
+	--- category 아이디 변수로 저장
+	OPEN mysell_list_record FOR
+	SELECT name, price, category_name, product_status
+	FROM product
+	where customer_id=c_id;
+	
+END; 
+/
+
+-- 실행
+var s refcursor;
+exec mysell_product(1,:s);
+print s;
+
+---------------------------------------------------------------------------
+-- 내가 구매중인 물품
+CREATE OR REPLACE PROCEDURE mybuy_product
+(
+
+	c_id IN customer.id%TYPE, -- 고객 id
+	mybuy_list_record OUT SYS_REFCURSOR
+	
+)
+IS 	
+BEGIN
+
+	OPEN mybuy_list_record FOR
+	SELECT name, price, category_name, product_status
+	FROM product
+	where customer_id=buy_customer_id;
+	
+END; 
+/
+
+var s refcursor;
+exec mybuy_product(1,:s);
+print s;
 
 
 -----------------------------------------------------------------------------
@@ -456,6 +532,5 @@ print c
 
 
 ---------------------------------------------------------------------------------
-
 
 
