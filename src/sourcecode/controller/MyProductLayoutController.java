@@ -39,87 +39,39 @@ import java.util.Set;
 import sourcecode.MainApp;
 
 import sourcecode.model.CustomerMySelf;
+import sourcecode.model.DAOCategory;
+import sourcecode.model.DAOProduct;
+import sourcecode.model.Product;
 import sourcecode.model.Customer;
 
 public class MyProductLayoutController implements Initializable {
-
-    @FXML private JFXComboBox<String> attributeList;
-    @FXML private TextField txtSearch;
-    //person -> product
-    @FXML private TableView<Customer> productTable;
-    @FXML private TableColumn<Customer, String> columnImage;
-    @FXML private TableColumn<Customer, String> columnProductName;
-    @FXML private TableColumn<Customer, String> columnPrice;
-    @FXML private TableColumn<Customer, String> columnSellerName;
-    @FXML private TableColumn<Customer, String> columnCategory; 
-    @FXML private TableColumn<Customer, String> columnProductStatus; 
+	private static final String[] arrColumnNaming = {"image", "productName", "price", "sellerName", "category", "status"}; 
+    private static enum columnNamingIdx{image, productName, price, sellerName, category, status};
+	@FXML private JFXComboBox<String> cbCategoryList;
+    private DAOCategory categoryList;
+    private CustomerMySelf myInfo;
+    @FXML private TextField tfSearch;
+    @FXML private TableView<Product> productTable;
+    @FXML private TableColumn<Product, String> columnImage;
+    @FXML private TableColumn<Product, String> columnProductName;
+    @FXML private TableColumn<Product, String> columnPrice;
+    @FXML private TableColumn<Product, String> columnSellerName;
+    @FXML private TableColumn<Product, String> columnCategory; 
+    @FXML private TableColumn<Product, String> columnProductStatus; 
     @FXML private Label lblNote;  
     @FXML private Label lblError;
     
-    private List<Customer> listPerson = new ArrayList();
-    
-    private ObservableList<Customer> observableListPerson;
+    private List<Product> defaultProductList = new ArrayList();
+    private List<Product> currentProductList = new ArrayList();
+    private String strCurrentCategory = "All";
+    private ObservableList<Product> observableListProduct;
     
     MainApp mainApp;
    
-    
-    @FXML
-    void actionRegisterProduct(ActionEvent event) {
-    	mainApp.showRegisterProductDialog();
-    }
-
-    @FXML
-    private void onClickedTable(MouseEvent event) {
-    	mainApp.showBuyProductDialog();
-    }
-    @FXML
-    void actionSearch(ActionEvent event) {
-        try {
-            if (attributeList.getValue().equals("Show everyone")){
-            	loadProduct(true);
-            }else{
-                
-                List<Customer> people = new ArrayList();
-                
-                switch (attributeList.getValue()) {
-                    case "물품명":
-                        //people.add(DAO.getInstance().findById(Integer.parseInt(txtSearch.getText())));
-                        break;
-                    case "카테고리":
-                        //people = DAO.getInstance().findByName(txtSearch.getText());
-                        break; 
-                    case "판매금액":
-                        //people = DAO.getInstance().findByAddress(txtSearch.getText()); 
-                        break;
-                    default:
-                        break;
-                }
-
-                //loadProduct(people);
-            }
-        }catch(NumberFormatException ime){
-            lblError.setText("Enter the valid value type");
-        }catch(NullPointerException npe){
-            lblError.setText("Enter some value");
-        }
-    }
-    
-    @FXML
-    void keyPressed(KeyEvent event) {
-        lblError.setText("");
-            
-    }
-    
-    @FXML
-    void actionCombobox(ActionEvent event) {
-        if (attributeList.getValue().equals("Show everyone")){
-            loadProduct(true);
-        }
-    }
-    
     @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        
+    public void initialize(URL url, ResourceBundle rb) 
+    {
+    	loadMyInfo();
     	loadProduct(false);
         loadCombobox();
         
@@ -134,6 +86,73 @@ public class MyProductLayoutController implements Initializable {
     }    
     
     
+    @FXML
+    void actionRegisterProduct(ActionEvent event) {
+    	mainApp.showRegisterProductDialog();
+    	loadProduct(currentProductList);
+    }
+
+    @FXML
+    private void onClickedTable(MouseEvent event) {
+    	mainApp.showBuyProductDialog();
+    }
+    @FXML
+    void actionSearch(ActionEvent event) {
+    	if(strCurrentCategory.equals(tfSearch.getText()) {
+    		return;
+    	}
+    	currentProductList.clear();
+    	
+    	try{
+            if (strCurrentCategory.equals("All")){
+            	loadProduct(true);
+            }else{
+                currentProductList = DAOProduct.getInstance().findByCategory(strSearchText);
+                loadProduct(currentProductList);
+            }
+        }catch(NumberFormatException ime){
+            lblError.setText("Enter the valid value type");
+        }catch(NullPointerException npe){
+            lblError.setText("Enter some value");
+        }
+    	
+    }
+    
+    @FXML
+    void keyPressed(KeyEvent event) {
+    	lblError.setText("");
+            
+    }
+    
+    @FXML
+    void actionCombobox(ActionEvent event) {
+    	strCurrentCategory = cbCategoryList.getValue();
+    	currentProductList.clear();
+    	try{
+            if (strCurrentCategory.equals("All")){
+            	loadProduct(true);
+            }else{
+                for(Product p : defaultProductList) {
+                	if(p.getCategoryName().equals(strCurrentCategory))
+                		currentProductList.add(p);
+                }
+                loadProduct(currentProductList);
+            }
+        }catch(NumberFormatException ime){
+            lblError.setText("Enter the valid value type");
+        }catch(NullPointerException npe){
+            lblError.setText("Enter some value");
+        }
+    }
+    
+   
+    public boolean loadMyInfo() {
+    	myInfo = CustomerMySelf.getInstance();
+    	if(myInfo.getInstance() != null)
+    		return true;
+    	else return false;
+    }
+    
     public boolean loadProduct(boolean cleanTable){
         
         try {
@@ -142,11 +161,13 @@ public class MyProductLayoutController implements Initializable {
             }
             
             definingColumn();
-        
-            //setListPerson(DAO.getInstance().findAll());
+            
+            String strMyName = myInfo.getCustomer().getName();
+            defaultProductList = DAOProduct.getInstance().findByName(strMyName);
+            
 
-            observableListPerson = FXCollections.observableArrayList(listPerson);
-            productTable.setItems(observableListPerson);
+            observableListProduct = FXCollections.observableArrayList(defaultProductList);
+            productTable.setItems(observableListProduct);
             
         }catch(Exception e) {
             alert("Error", null, "An error occurred while retrieving data", Alert.AlertType.ERROR);
@@ -157,23 +178,23 @@ public class MyProductLayoutController implements Initializable {
     }
     
     
-    public void loadProduct(List<Customer> arrayListPerson) {
+    public void loadProduct(List<Product> arrayListPerson) {
          try {
             cleanTable();
-            observableListPerson = FXCollections.observableArrayList(arrayListPerson);
-            productTable.setItems(observableListPerson);
+            observableListProduct = FXCollections.observableArrayList(arrayListPerson);
+            productTable.setItems(observableListProduct);
         }catch(Exception e) {
             alert("Error", null, "An error occurred while retrieving data", Alert.AlertType.ERROR);
         }
     }
     
     public void definingColumn() {
-        columnImage.setCellValueFactory(new PropertyValueFactory<>("image"));
-        columnProductName.setCellValueFactory(new PropertyValueFactory<>("productName"));
-        columnPrice.setCellValueFactory(new PropertyValueFactory<>("price"));
-        columnSellerName.setCellValueFactory(new PropertyValueFactory<>("sellerName"));
-        columnCategory.setCellValueFactory(new PropertyValueFactory<>("category"));
-        columnProductStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        columnImage.setCellValueFactory(new PropertyValueFactory<>(arrColumnNaming[0]));
+        columnProductName.setCellValueFactory(new PropertyValueFactory<>(arrColumnNaming[1]));
+        columnPrice.setCellValueFactory(new PropertyValueFactory<>(arrColumnNaming[2]));
+        columnSellerName.setCellValueFactory(new PropertyValueFactory<>(arrColumnNaming[3]));
+        columnCategory.setCellValueFactory(new PropertyValueFactory<>(arrColumnNaming[4]));
+        columnProductStatus.setCellValueFactory(new PropertyValueFactory<>(arrColumnNaming[5]));
     }
 
     private void cleanTable() {
@@ -189,15 +210,17 @@ public class MyProductLayoutController implements Initializable {
     }
     
     public void loadCombobox() {
-        
+    	categoryList = DAOCategory.getInstance();
         List<String> values = new ArrayList<String>();
-     
-        values.add("물품명");
-        values.add("카테고리");
-        values.add("판매금액");
+        int categorySize = categoryList.getCategorySize();
+        
+        values.add("All");
+        for(int idx=0; idx<categorySize; idx++) {
+        	values.add(categoryList.getCategory(idx).getCategoryName());
+        }
         
         ObservableList<String> obsValues = FXCollections.observableArrayList(values);
-        attributeList.setItems(obsValues);
+        cbCategoryList.setItems(obsValues);
     }
     
 
@@ -228,12 +251,12 @@ public class MyProductLayoutController implements Initializable {
         //lblNote.setText(person.getNote());
     }
     
-    public List<Customer> getListPerson() {
-        return listPerson;
+    public List<Product> getListMyProduct() {
+        return defaultProductList;
     }
 
-    public void setListPerson(List<Customer> listPerson) {
-        this.listPerson = listPerson;
+    public void setListPerson(List<Product> productList) {
+        this.defaultProductList = productList;
     }
     
     

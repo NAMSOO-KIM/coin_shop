@@ -66,7 +66,10 @@ public class DAOProduct {
             }
          }
       } catch(NullPointerException e) {
-         System.out.println();
+    	  Alert alert = new Alert(AlertType.WARNING);
+          alert.setTitle("Warning !!");
+          alert.setHeaderText("등록된 제품이 없습니다 !");
+          alert.showAndWait();
       }
       return productByName;
    }

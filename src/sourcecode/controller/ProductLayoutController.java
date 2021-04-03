@@ -45,7 +45,7 @@ public class ProductLayoutController implements Initializable {
     @FXML private JFXComboBox<String> cbCategoryList;
     private DAOCategory categoryList;
 
-    @FXML private TextField txtSearch;
+    @FXML private TextField tfSearch;
     @FXML private TableView<Product> productTable;
     @FXML private TableColumn<Product, String> columnImage;
     @FXML private TableColumn<Product, String> columnProductName;
@@ -60,12 +60,10 @@ public class ProductLayoutController implements Initializable {
     
     private ObservableList<Product> observablelistProduct;
     
- 
     MainApp mainApp;
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        categoryList = DAOCategory.getInstance();
         loadCombobox();
     	loadProduct(false);
         
@@ -95,7 +93,7 @@ public class ProductLayoutController implements Initializable {
                 
                 List<Product> product = new ArrayList();
                 String strCategoryName = cbCategoryList.getValue();
-                product = DAOProduct.getInstance().findByName(txtSearch.getText());
+                product = DAOProduct.getInstance().findByName(tfSearch.getText());
                
                 loadProduct(product);
             }
@@ -121,7 +119,7 @@ public class ProductLayoutController implements Initializable {
                 
                 List<Product> product = new ArrayList();
                 String strCategoryName = cbCategoryList.getValue();
-                product = DAOProduct.getInstance().findByName(txtSearch.getText());
+                product = DAOProduct.getInstance().findByName(strCategoryName);
                
                 loadProduct(product);
             }
@@ -196,7 +194,7 @@ public class ProductLayoutController implements Initializable {
     }
     
     public void loadCombobox() {
-        
+    	categoryList = DAOCategory.getInstance();
         List<String> values = new ArrayList<String>();
         int categorySize = categoryList.getCategorySize();
         

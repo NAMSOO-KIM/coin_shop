@@ -19,7 +19,7 @@
    <children>
       <HBox layoutX="14.0" layoutY="20.0" prefHeight="32.0" prefWidth="620.0" AnchorPane.leftAnchor="14.0">
          <children>
-            <JFXComboBox fx:id="attributeList" labelFloat="true" onAction="#actionCombobox" prefHeight="25.0" prefWidth="141.0" promptText="Item type">
+            <JFXComboBox fx:id="cbCategoryList" labelFloat="true" onAction="#actionCombobox" prefHeight="25.0" prefWidth="141.0" promptText="Category">
                <padding>
                   <Insets right="10.0" />
                </padding>
@@ -34,7 +34,7 @@
                   </Glow>
                </effect>
             </JFXComboBox>
-            <TextField fx:id="txtSearch" onAction="#actionSearch" onKeyPressed="#keyPressed" prefHeight="25.0" prefWidth="427.0" promptText="    Enter value here" style="-fx-background-radius: 10;">
+            <TextField fx:id="tfSearch" onAction="#actionSearch" onKeyPressed="#keyPressed" prefHeight="25.0" prefWidth="427.0" promptText="    Enter value here" style="-fx-background-radius: 10;">
                <padding>
                   <Insets right="20.0" />
                </padding>

@@ -34,7 +34,7 @@
                   </Glow>
                </effect>
             </JFXComboBox>
-            <TextField fx:id="txtSearch" onAction="#actionSearch" onKeyPressed="#keyPressed" prefHeight="25.0" prefWidth="427.0" promptText="    Enter value here" style="-fx-background-radius: 10;">
+            <TextField fx:id="tfSearch" onAction="#actionSearch" onKeyPressed="#keyPressed" prefHeight="25.0" prefWidth="427.0" promptText="    Enter value here" style="-fx-background-radius: 10;">
                <padding>
                   <Insets right="20.0" />
                </padding>

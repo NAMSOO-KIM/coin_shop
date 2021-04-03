@@ -59,8 +59,39 @@ public class RegisterProductLayoutController implements Initializable {
     private DAOCompany companys;
    
    
-    private List<String> emails;
     
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+    	loadComboboxCategory();
+    	loadComboboxShipmentCompany();
+    	
+    	tfProductPrice.setOnKeyPressed(event -> {
+    		String productPrice = "";
+    		
+    		String value = event.getText();
+    		try {
+    			if(Character.isDigit(value.charAt(0))) {
+        			return;
+        		} else {
+        			Alert alert = new Alert(AlertType.WARNING);
+            		alert.setTitle("Warning!!");
+            		alert.setHeaderText("숫자만 입력하세요");
+            		alert.showAndWait();
+            		productPrice = tfProductPrice.getText();
+            		productPrice = productPrice.substring(0, productPrice.length() - 1);
+
+        		}
+    		} catch(NullPointerException e) {
+    			
+    		} finally {
+    			
+    			if(productPrice.length() == 0)
+    				return;
+        		tfProductPrice.setText(productPrice);
+    		}
+    		
+    	});
+    }    
     
     @FXML
     public void onBtnClickedRegisterProductSubmit(ActionEvent event) {
@@ -102,41 +133,6 @@ public class RegisterProductLayoutController implements Initializable {
     }
     
    
-    
-    
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-    	loadComboboxCategory();
-    	loadComboboxShipmentCompany();
-    	
-    	tfProductPrice.setOnKeyPressed(event -> {
-    		String productPrice = "";
-    		
-    		String value = event.getText();
-    		try {
-    			if(Character.isDigit(value.charAt(0))) {
-        			return;
-        		} else {
-        			Alert alert = new Alert(AlertType.WARNING);
-            		alert.setTitle("Warning!!");
-            		alert.setHeaderText("숫자만 입력하세요");
-            		alert.showAndWait();
-            		productPrice = tfProductPrice.getText();
-            		productPrice = productPrice.substring(0, productPrice.length() - 1);
-
-        		}
-    		} catch(NullPointerException e) {
-    			
-    		} finally {
-    			
-    			if(productPrice.length() == 0)
-    				return;
-        		tfProductPrice.setText(productPrice);
-    		}
-    		
-    	});
-    }    
-    
     
     public boolean isValidInput(){
         
@@ -197,10 +193,15 @@ public class RegisterProductLayoutController implements Initializable {
       if(companys.getCompanySize() == 0) {
     	  return;
       }
+      int companySize = companys.getCompanySize();
+      
       List<String> values = new ArrayList<String>();
-      for(Company<Integer, String> c : companyList) {
-    	  values.add(c.getCompanyName());
+      for(int idx=0; idx<companySize; idx++) {
+      	values.add(companys.getCompany(idx).getCompanyName());
       }
+      
+      ObservableList<String> obsValues = FXCollections.observableArrayList(values);
+      cbShipmentCompany.setItems(obsValues);
     }
     
     public void loadComboboxCategory(){
@@ -208,9 +209,12 @@ public class RegisterProductLayoutController implements Initializable {
     	if(categorys.getCategorySize() == 0) {
     		return;
     	}
+    	
+    	int categorySize = categorys.getCategorySize();
         List<String> values = new ArrayList<String>();
-        for(Category<Integer, String> c : categoryList) {
-        	values.add(c.getCategoryName());
+        values.add("All");
+        for(int idx=0; idx<categorySize; idx++) {
+        	values.add(categorys.getCategory(idx).getCategoryName());
         }
         
         
