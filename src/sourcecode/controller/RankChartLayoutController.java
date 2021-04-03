@@ -12,9 +12,10 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.XYChart;
 
-import sourcecode.model.Person;
+
 import sourcecode.util.DateUtil;
-import sourcecode.model.DAO;
+import sourcecode.model.CustomerMySelf;
+import sourcecode.model.Customer;
 
 
 public class RankChartLayoutController implements Initializable {
@@ -40,22 +41,21 @@ public class RankChartLayoutController implements Initializable {
         //setPersonData(DAO.getInstance().findAll());
     }    
     
-    public void setPersonData(List<Person> persons){
-        
-        int[] monthCounter = new int[12];
-        for (Person p: persons){
-            int month = DateUtil.formatDate(p.getBirthday()).getMonthValue()-1;
-            monthCounter[month]++;
-        }
-        
-        XYChart.Series<String, Integer> series = new XYChart.Series<>();
-        
-        for (int i = 0; i < monthCounter.length; i++) {
-            series.getData().add(new XYChart.Data<>(monthNames.get(i), monthCounter[i]));
-        }
-        
-        barChart.getData().add(series);
-       
-    }
+	/*
+	 * public void setPersonData(List<Person> persons){
+	 * 
+	 * int[] monthCounter = new int[12]; for (Person p: persons){ int month =
+	 * DateUtil.formatDate(p.getBirthday()).getMonthValue()-1;
+	 * monthCounter[month]++; }
+	 * 
+	 * XYChart.Series<String, Integer> series = new XYChart.Series<>();
+	 * 
+	 * for (int i = 0; i < monthCounter.length; i++) { series.getData().add(new
+	 * XYChart.Data<>(monthNames.get(i), monthCounter[i])); }
+	 * 
+	 * barChart.getData().add(series);
+	 * 
+	 * }
+	 */
 
 }

@@ -1,9 +1,14 @@
 package sourcecode.controller;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
 
+import java.net.URL;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -22,8 +27,18 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import oracle.jdbc.OracleCallableStatement;
+import oracle.jdbc.OracleTypes;
 import sourcecode.MainApp;
-import sourcecode.model.Person;
+
+import sourcecode.controller.DBConnection;
+import sourcecode.model.CustomerMySelf;
+import sourcecode.model.DAOCategory;
+import sourcecode.model.DAOCompany;
+import sourcecode.model.Category;
+import sourcecode.model.Company;
+import sourcecode.model.Customer;
+
 public class LoginLayoutController implements Initializable {
 	MainApp mainApp; 
 	Scene thisScene;
@@ -33,37 +48,112 @@ public class LoginLayoutController implements Initializable {
 	@FXML private Button btnLogin;
 	@FXML private Button btnRegisterMember;
 	@FXML private Button btnExit;
+	
 	private boolean bID;
 	private boolean bPW;
 	private boolean bLoginSuccess;
+	private CustomerMySelf customerMyself;
+
+	
+	
 	@FXML
 	void onBtnClickedLogin(ActionEvent event) {
 		System.out.println("로그인 버튼 클릭");
 		String id = tfID.getText();
 		String pw = tfPW.getText();
 		
-		System.out.println(id + ", " + pw);
 		//if login success 단 id, pw따로 확인할것
-	
-		/*Alert alert = new Alert(AlertType.WARNING);
-		alert.setTitle("login Error");
-		if(!bID) {
-			alert.setHeaderText("아이디가 존재하지 않습니다");
+		// 1 리턴시 로그인 성공, 0 리턴시 로그인 실패 구현
+		System.out.println(id + ", " + pw);
+		bLoginSuccess = funcCheckLogin(id, pw);
+
+		if(bLoginSuccess == false) {
+			//ID 중복
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("login Error");
+			alert.setHeaderText("로그인 실패 : 아이디 또는 비밀번호를 확인해주세요.");
+			alert.showAndWait();
 		}
-		else if(bID && !bPW) {
-			alert.setHeaderText("비밀번호가 틀렸습니다");
-		}
-		alert.showAndWait();*/
-		bLoginSuccess = true;
-		
-		if(bLoginSuccess) {
+		else { // 로그인 성공
 			Stage pop = (Stage)btnLogin.getScene().getWindow();
 			pop.close();
-		}
-			
-			
+		}	
 	}
 	
+	   private boolean funcCheckLogin(String strID, String strPW) {
+	    	
+			String runP = "{ call customer_login(?, ?, ?) }";
+		
+				try {
+					Connection conn = DBConnection.getConnection();
+					Statement stmt = conn.createStatement();
+					CallableStatement callableStatement = conn.prepareCall(runP.toString());
+					callableStatement.setString(1, strID);
+					callableStatement.setString(2, strPW);
+					callableStatement.registerOutParameter(3, java.sql.Types.INTEGER);
+					callableStatement.executeUpdate();	
+					
+					int check = callableStatement.getInt(3);
+					if(check == 0) {
+						System.out.println("로그인 실패");
+							return false;
+					}
+					else {
+						System.out.println("로그인 성공");
+						procCallCustomerInfo(strID);
+						//procGetCategoryInfo();
+						//procGetCompanyInfo();
+						return true;
+					}
+				} catch (SQLException e) {
+					System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+					e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				return true; //Success
+	    }
+	   
+	   private boolean procCallCustomerInfo(String strID) {
+		   CustomerMySelf customerMyself = CustomerMySelf.getInstance();
+		   OracleCallableStatement ocstmt = null;
+		   
+		   String runP = "{ call sp_get_customer_info(?, ?) }";
+		   try {
+			   Connection conn = DBConnection.getConnection();
+			   Statement stmt = conn.createStatement();
+			   CallableStatement callableStatement = conn.prepareCall(runP.toString());
+			   callableStatement.setString(1, strID);
+			   callableStatement.registerOutParameter(2, OracleTypes.CURSOR);
+			   callableStatement.executeUpdate();	
+			   ocstmt = (OracleCallableStatement)callableStatement;
+
+			  
+			   ResultSet rs =  ocstmt.getCursor(2);
+			   while (rs.next()) {
+			        String field1 = rs.getString(1);
+			        customerMyself.getCustomer().setId(rs.getInt("id"));
+			        customerMyself.getCustomer().setName(rs.getString("name"));
+	    			customerMyself.getCustomer().setPassword(rs.getString("password"));
+	    			customerMyself.getCustomer().setPhone(rs.getString("phone_number"));
+	    			customerMyself.getCustomer().setZipcode(rs.getString("zipcode"));
+	    			customerMyself.getCustomer().setVolunteer_time(rs.getInt("volunteer_working_time"));
+	    			customerMyself.getCustomer().setCoin(rs.getInt("coin"));
+			        System.out.println(customerMyself.getCustomer().getName()+" 로그인 정보 동기화 완료");
+			   }
+		   } catch(Exception e) {
+			   e.printStackTrace();
+			   return false;
+		   }
+			
+		   return true;
+			
+	   }
+	   
+	   
+	   
+
 	@FXML
 	void onBtnClickedRegisterMember(ActionEvent event) {
 		System.out.println("회원가입 버튼 클릭");
@@ -90,7 +180,6 @@ public class LoginLayoutController implements Initializable {
 		this.mainApp = mainApp;
 	}
 
-	
 	public boolean showRegisterMemberDialog(String title) {
 		thisScene = tfID.getScene();
 

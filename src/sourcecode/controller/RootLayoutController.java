@@ -2,6 +2,10 @@ package sourcecode.controller;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ResourceBundle;
 
 import com.jfoenix.controls.JFXButton;
@@ -22,8 +26,15 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import oracle.jdbc.OracleCallableStatement;
+import oracle.jdbc.OracleTypes;
 import sourcecode.MainApp;
-import sourcecode.model.DAO;
+import sourcecode.model.CustomerMySelf;
+import sourcecode.model.DAOCategory;
+import sourcecode.model.DAOCompany;
+import sourcecode.model.Category;
+import sourcecode.model.Company;
+import sourcecode.model.Customer;
 
 public class RootLayoutController implements Initializable {
     
@@ -49,6 +60,9 @@ public class RootLayoutController implements Initializable {
     private MyProductLayoutController myProductController;
     private RankChartLayoutController rankChartController;
    
+	private DAOCategory daoCategory;
+	private DAOCompany daoCompany;
+	
     static final private int segment = 3;
     static final private String[] fxmlPath = {"view/fxml/ProductLayout.fxml"
     		, "view/fxml/MyProductLayout.fxml"
@@ -77,7 +91,7 @@ public class RootLayoutController implements Initializable {
     @FXML
     void closeApplication(MouseEvent event) {
         try{
-            DAO.getInstance().closeEntityManager();
+            //DAOCustomer.getInstance().closeEntityManager();
         }catch(Exception e){
             System.out.println("Error when closing the application");
         }finally {
@@ -94,7 +108,8 @@ public class RootLayoutController implements Initializable {
 	*/
     @Override
     public void initialize(URL url, ResourceBundle rb) {  	
-    	
+    	procGetCategoryInfo();
+		procGetCompanyInfo();
     }    
     public void createSegment() {
     	fxmlLoader = new FXMLLoader[segment];
@@ -121,6 +136,7 @@ public class RootLayoutController implements Initializable {
 					paneAllProduct = fxmlLoader[i].load();
 					allProductController = fxmlLoader[i].getController();
 					allProductController.setMainApp(mainApp);
+					
 					break;
 				case 1:
 					paneMyProduct = fxmlLoader[i].load();
@@ -145,7 +161,65 @@ public class RootLayoutController implements Initializable {
     	//paneSegment.toBack();
     	
     }
-    
+    private boolean procGetCategoryInfo() {
+		   OracleCallableStatement ocstmt = null;
+		   
+		   daoCategory = DAOCategory.getInstance();
+		   String runP = "{ call get_category_info(?)}";
+		   
+		   try {
+			   Connection conn = DBConnection.getConnection();
+			   Statement stmt = conn.createStatement();
+			   CallableStatement callableStatement = conn.prepareCall(runP.toString());
+			   callableStatement.registerOutParameter(1, OracleTypes.CURSOR);
+			   callableStatement.executeUpdate();	
+			   ocstmt = (OracleCallableStatement)callableStatement;
+
+			   ResultSet rs =  ocstmt.getCursor(1);
+			   while (rs.next()) {
+				   Category<Integer, String> categorys = new Category<>();
+				   categorys.setCategory(rs.getInt("id"), rs.getString("name"));
+				   System.out.println(categorys.getCategoryID()+" "+categorys.getCategoryName());
+				   daoCategory.addCategory(categorys);
+			   }
+			   
+		   } catch(Exception e) {
+			   e.printStackTrace();
+			   return false;
+		   }
+		   return true;
+	   }
+	   
+	   private boolean procGetCompanyInfo() {
+		   OracleCallableStatement ocstmt = null;
+		   
+		   daoCompany = DAOCompany.getInstance();
+		   String runP = "{ call get_company_info(?)}";
+		   
+		   try {
+			   Connection conn = DBConnection.getConnection();
+			   Statement stmt = conn.createStatement();
+			   CallableStatement callableStatement = conn.prepareCall(runP.toString());
+			   callableStatement.registerOutParameter(1, OracleTypes.CURSOR);
+			   callableStatement.executeUpdate();	
+			   ocstmt = (OracleCallableStatement)callableStatement;
+
+			   ResultSet rs =  ocstmt.getCursor(1);
+			   while (rs.next()) {
+				   Company<Integer, String> companys = new Company<>();
+				   companys.setCompany(rs.getInt("id"), rs.getString("name"));
+				   System.out.println(companys.getCompanyID()+" "+companys.getCompanyName());
+				   daoCompany.addCompany(companys);
+			   }
+			   
+		   } catch(Exception e) {
+			   e.printStackTrace();
+			   return false;
+		   }
+		   return true;
+	   }
+	   
+	   
     @FXML
     private void onBtnClickedCheckPoint(ActionEvent event) {
     	System.out.println("내마일리지 확인");

@@ -46,7 +46,7 @@
       </Pane>
       <JFXPasswordField fx:id="pfPW_check" labelFloat="true" layoutX="13.0" layoutY="116.0" prefHeight="23.0" prefWidth="209.0" promptText="password check" />
       <Button fx:id="btnCheckVolunteerTime" layoutX="130.0" layoutY="220.0" mnemonicParsing="false" onAction="#onBtnClickedCheckVolunteerTime" prefHeight="28.0" prefWidth="41.0" text="확인" />
-      <JFXTextField fx:id="tfID" focusColor="DARKSLATEGRAY" labelFloat="true" layoutX="13.0" layoutY="56.0" prefHeight="25.0" prefWidth="209.0" text="ID">
+      <JFXTextField fx:id="tfID" focusColor="DARKSLATEGRAY" labelFloat="true" layoutX="13.0" layoutY="56.0" prefHeight="25.0" prefWidth="209.0" promptText="ID">
          <font>
             <Font name="Arial" size="12.0" />
          </font>

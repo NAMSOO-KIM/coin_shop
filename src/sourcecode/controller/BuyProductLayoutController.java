@@ -14,6 +14,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
+import sourcecode.model.CustomerMySelf;
+import sourcecode.model.Customer;
 
 public class BuyProductLayoutController implements Initializable {
 	private Stage currentStage;

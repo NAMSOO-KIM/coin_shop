@@ -29,6 +29,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 import java.util.Arrays;
@@ -37,25 +38,27 @@ import java.util.Set;
 
 import sourcecode.MainApp;
 
-import sourcecode.model.Person;
+import sourcecode.model.CustomerMySelf;
+import sourcecode.model.Customer;
 
 public class MyProductLayoutController implements Initializable {
 
     @FXML private JFXComboBox<String> attributeList;
     @FXML private TextField txtSearch;
-    @FXML private TableView<Person> productTable;
-    @FXML private TableColumn<Person, String> columnImage;
-    @FXML private TableColumn<Person, String> columnProductName;
-    @FXML private TableColumn<Person, String> columnPrice;
-    @FXML private TableColumn<Person, String> columnSellerName;
-    @FXML private TableColumn<Person, String> columnCategory; 
-    @FXML private TableColumn<Person, String> columnProductStatus; 
+    //person -> product
+    @FXML private TableView<Customer> productTable;
+    @FXML private TableColumn<Customer, String> columnImage;
+    @FXML private TableColumn<Customer, String> columnProductName;
+    @FXML private TableColumn<Customer, String> columnPrice;
+    @FXML private TableColumn<Customer, String> columnSellerName;
+    @FXML private TableColumn<Customer, String> columnCategory; 
+    @FXML private TableColumn<Customer, String> columnProductStatus; 
     @FXML private Label lblNote;  
     @FXML private Label lblError;
     
-    private List<Person> listPerson = new ArrayList();
+    private List<Customer> listPerson = new ArrayList();
     
-    private ObservableList<Person> observableListPerson;
+    private ObservableList<Customer> observableListPerson;
     
     MainApp mainApp;
    
@@ -76,7 +79,7 @@ public class MyProductLayoutController implements Initializable {
             	loadProduct(true);
             }else{
                 
-                List<Person> people = new ArrayList();
+                List<Customer> people = new ArrayList();
                 
                 switch (attributeList.getValue()) {
                     case "Ή°Η°Έν":
@@ -92,7 +95,7 @@ public class MyProductLayoutController implements Initializable {
                         break;
                 }
 
-                loadProduct(people);
+                //loadProduct(people);
             }
         }catch(NumberFormatException ime){
             lblError.setText("Enter the valid value type");
@@ -154,7 +157,7 @@ public class MyProductLayoutController implements Initializable {
     }
     
     
-    public void loadProduct(List<Person> arrayListPerson) {
+    public void loadProduct(List<Customer> arrayListPerson) {
          try {
             cleanTable();
             observableListPerson = FXCollections.observableArrayList(arrayListPerson);
@@ -221,15 +224,15 @@ public class MyProductLayoutController implements Initializable {
         */
     }
     
-    public void showNote(Person person) {
-        lblNote.setText(person.getNote());
+    public void showNote(Customer person) {
+        //lblNote.setText(person.getNote());
     }
     
-    public List<Person> getListPerson() {
+    public List<Customer> getListPerson() {
         return listPerson;
     }
 
-    public void setListPerson(List<Person> listPerson) {
+    public void setListPerson(List<Customer> listPerson) {
         this.listPerson = listPerson;
     }
     

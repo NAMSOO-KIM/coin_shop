@@ -31,28 +31,53 @@ import java.util.Set;
 
 import sourcecode.MainApp;
 
-import sourcecode.model.Person;
-
+import sourcecode.model.CustomerMySelf;
+import sourcecode.model.CustomerTheOther;
+import sourcecode.model.Customer;
+import sourcecode.model.Product;
+import sourcecode.model.DAOCategory;
+import sourcecode.model.Category;
+import sourcecode.model.DAOCompany;
+import sourcecode.model.Company;
+import sourcecode.model.DAOProduct;
 public class ProductLayoutController implements Initializable {
 
-    @FXML private JFXComboBox<String> attributeList;
+    @FXML private JFXComboBox<String> cbCategoryList;
+    private DAOCategory categoryList;
+
     @FXML private TextField txtSearch;
-    @FXML private TableView<Person> productTable;
-    @FXML private TableColumn<Person, String> columnImage;
-    @FXML private TableColumn<Person, String> columnProductName;
-    @FXML private TableColumn<Person, String> columnPrice;
-    @FXML private TableColumn<Person, String> columnSellerName;
-    @FXML private TableColumn<Person, String> columnCategory; 
-    @FXML private TableColumn<Person, String> columnProductStatus; 
+    @FXML private TableView<Product> productTable;
+    @FXML private TableColumn<Product, String> columnImage;
+    @FXML private TableColumn<Product, String> columnProductName;
+    @FXML private TableColumn<Product, String> columnPrice;
+    @FXML private TableColumn<Product, String> columnSellerName;
+    @FXML private TableColumn<Product, String> columnCategory; 
+    @FXML private TableColumn<Product, String> columnProductStatus; 
     @FXML private Label lblNote;  
     @FXML private Label lblError;
     
-    private List<Person> listPerson = new ArrayList();
+    private List<Product> productList = new ArrayList();
     
-    private ObservableList<Person> observableListPerson;
+    private ObservableList<Product> observablelistProduct;
     
+ 
     MainApp mainApp;
-   
+    
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        categoryList = DAOCategory.getInstance();
+        loadCombobox();
+    	loadProduct(false);
+        
+		/*
+		 * try{ productTable.getSelectionModel().selectedItemProperty().addListener(
+		 * (observable, oldValue, newValue) -> showNote(newValue));
+		 * 
+		 * //loadAutoComplete();
+		 * 
+		 * }catch(NullPointerException npe){ lblNote.setText(""); }
+		 */
+    }    
     
     @FXML
     void actionRegisterProduct(ActionEvent event) {
@@ -64,27 +89,15 @@ public class ProductLayoutController implements Initializable {
     @FXML
     void actionSearch(ActionEvent event) {
         try{
-            if (attributeList.getValue().equals("Show everyone")){
+            if (cbCategoryList.getValue().equals("All")){
             	loadProduct(true);
             }else{
                 
-                List<Person> people = new ArrayList();
-                
-                switch (attributeList.getValue()) {
-                    case "물품명":
-                        //people.add(DAO.getInstance().findById(Integer.parseInt(txtSearch.getText())));
-                        break;
-                    case "카테고리":
-                        //people = DAO.getInstance().findByName(txtSearch.getText());
-                        break; 
-                    case "판매금액":
-                        //people = DAO.getInstance().findByAddress(txtSearch.getText()); 
-                        break;
-                    default:
-                        break;
-                }
-
-                loadProduct(people);
+                List<Product> product = new ArrayList();
+                String strCategoryName = cbCategoryList.getValue();
+                product = DAOProduct.getInstance().findByName(txtSearch.getText());
+               
+                loadProduct(product);
             }
         }catch(NumberFormatException ime){
             lblError.setText("Enter the valid value type");
@@ -101,27 +114,29 @@ public class ProductLayoutController implements Initializable {
     
     @FXML
     void actionCombobox(ActionEvent event) {
-        if (attributeList.getValue().equals("Show everyone")){
-            loadProduct(true);
+    	try{
+            if (cbCategoryList.getValue().equals("All")){
+            	loadProduct(true);
+            }else{
+                
+                List<Product> product = new ArrayList();
+                String strCategoryName = cbCategoryList.getValue();
+                product = DAOProduct.getInstance().findByName(txtSearch.getText());
+               
+                loadProduct(product);
+            }
+        }catch(NumberFormatException ime){
+            lblError.setText("Enter the valid value type");
+        }catch(NullPointerException npe){
+            lblError.setText("Enter some value");
         }
     }
     
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        
-    	loadProduct(false);
-        loadCombobox();
-        
-		/*
-		 * try{ productTable.getSelectionModel().selectedItemProperty().addListener(
-		 * (observable, oldValue, newValue) -> showNote(newValue));
-		 * 
-		 * //loadAutoComplete();
-		 * 
-		 * }catch(NullPointerException npe){ lblNote.setText(""); }
-		 */
-    }    
     
+    public void refresh() {
+    	loadCombobox();
+     	loadProduct(false);
+    }
     @FXML
     private void onClickedTable(MouseEvent event) {
     	//productTable.getSelectionModel().getSelectedItem().getXX();
@@ -137,10 +152,8 @@ public class ProductLayoutController implements Initializable {
             
             definingColumn();
         
-            //setListPerson(DAO.getInstance().findAll());
-
-            observableListPerson = FXCollections.observableArrayList(listPerson);
-            productTable.setItems(observableListPerson);
+            observablelistProduct = FXCollections.observableArrayList(productList);
+            productTable.setItems(observablelistProduct);
             
         }catch(Exception e) {
             alert("Error", null, "An error occurred while retrieving data", Alert.AlertType.ERROR);
@@ -151,11 +164,11 @@ public class ProductLayoutController implements Initializable {
     }
     
     
-    public void loadProduct(List<Person> arrayListPerson) {
+    public void loadProduct(List<Product> arrayListProduct) {
          try {
             cleanTable();
-            observableListPerson = FXCollections.observableArrayList(arrayListPerson);
-            productTable.setItems(observableListPerson);
+            observablelistProduct = FXCollections.observableArrayList(arrayListProduct);
+            productTable.setItems(observablelistProduct);
         }catch(Exception e) {
             alert("Error", null, "An error occurred while retrieving data", Alert.AlertType.ERROR);
         }
@@ -185,13 +198,15 @@ public class ProductLayoutController implements Initializable {
     public void loadCombobox() {
         
         List<String> values = new ArrayList<String>();
-     
-        values.add("물품명");
-        values.add("카테고리");
-        values.add("판매금액");
+        int categorySize = categoryList.getCategorySize();
+        
+        values.add("All");
+        for(int idx=0; idx<categorySize; idx++) {
+        	values.add(categoryList.getCategory(idx).getCategoryName());
+        }
         
         ObservableList<String> obsValues = FXCollections.observableArrayList(values);
-        attributeList.setItems(obsValues);
+        cbCategoryList.setItems(obsValues);
     }
     
 
@@ -201,31 +216,32 @@ public class ProductLayoutController implements Initializable {
         AutoCompletionBinding<String> acb;
         Set<String> ps;
         
-        ArrayList<String> values = new ArrayList<String>();
-        for (int i = 0; i < listPerson.size(); i++){
-            values.add(listPerson.get(i).getName());
-            values.add(listPerson.get(i).getAddress());
-            values.add(listPerson.get(i).getEmail());
-            values.add(listPerson.get(i).getBirthday());
-            values.add(listPerson.get(i).getNumber());
-        }
+		/*
+		 * ArrayList<String> values = new ArrayList<String>(); for (int i = 0; i <
+		 * productList.size(); i++){ values.add(productList.get(i).getName());
+		 * values.add(productList.get(i).getAddress());
+		 * values.add(productList.get(i).getEmail());
+		 * values.add(productList.get(i).getBirthday());
+		 * values.add(productList.get(i).getNumber()); }
+		 */
         
         
-        String[] _possibleSuggestions = values.toArray(new String[0]);
-        ps = new HashSet<>(Arrays.asList(_possibleSuggestions));
-        TextFields.bindAutoCompletion(txtSearch, _possibleSuggestions);
+		/*
+		 * String[] _possibleSuggestions = values.toArray(new String[0]); ps = new
+		 * HashSet<>(Arrays.asList(_possibleSuggestions));
+		 * TextFields.bindAutoCompletion(txtSearch, _possibleSuggestions);
+		 */
     }
     
-    public void showNote(Person person) {
-        lblNote.setText(person.getNote());
-    }
-    
-    public List<Person> getListPerson() {
-        return listPerson;
+	/*
+	 * public void showNote(Customer person) { lblNote.setText(person.getNote()); }
+	 */
+    public List<Product> getlistProduct() {
+        return productList;
     }
 
-    public void setListPerson(List<Person> listPerson) {
-        this.listPerson = listPerson;
+    public void setlistCustomer(List<Product> productList) {
+        this.productList = productList;
     }
     
     

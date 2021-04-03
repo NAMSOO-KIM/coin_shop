@@ -18,7 +18,9 @@ import sourcecode.controller.BuyProductLayoutController;
 import sourcecode.controller.LoginLayoutController;
 import sourcecode.controller.RegisterMemberDialogController;
 import sourcecode.controller.RegisterProductLayoutController;
-import sourcecode.model.Person;
+import sourcecode.model.CustomerMySelf;
+import sourcecode.model.Customer;
+
 
 import sourcecode.controller.RootLayoutController;
 
@@ -66,7 +68,6 @@ public class MainApp extends Application {
 			FXMLLoader fxmlLoader = new FXMLLoader();
 			fxmlLoader.setLocation(MainApp.class.getResource("view/fxml/RootLayout.fxml"));
 			rootLayout = (BorderPane) fxmlLoader.load();
-
 			
 			RootLayoutController rootController = fxmlLoader.getController();
 	
@@ -82,6 +83,7 @@ public class MainApp extends Application {
 			//rootLayout.setCenter(rootController.getRankChart());
 			primaryStage.show();
 		} catch (IOException e) {
+			e.printStackTrace();
 			return false;
 		}
 
@@ -160,11 +162,9 @@ public class MainApp extends Application {
 
 			RegisterProductLayoutController controller = loader.getController();
 			controller.setDialogStage(stageRegProduct);
-			//controller.setPerson(person);
 
 			stageRegProduct.showAndWait();
 			return true;
-			//return controller.isOkClicked();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;

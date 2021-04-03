@@ -26,11 +26,13 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import sourcecode.model.DAO;
-import sourcecode.model.Person;
-
 import sourcecode.util.SendEmail;
-
+import sourcecode.model.CustomerMySelf;
+import sourcecode.model.DAOCategory;
+import sourcecode.model.DAOCompany;
+import sourcecode.model.Category;
+import sourcecode.model.Company;
+import sourcecode.model.Customer;
 
 public class RegisterProductLayoutController implements Initializable {
 	Stage currentStage;
@@ -50,6 +52,11 @@ public class RegisterProductLayoutController implements Initializable {
     private String strProductImagePath;
     private int nProductPrice;
     
+    private ArrayList<Category<Integer, String>> categoryList;
+    private ArrayList<Company<Integer, String>> companyList;
+    
+    private DAOCategory categorys;
+    private DAOCompany companys;
    
    
     private List<String> emails;
@@ -58,7 +65,7 @@ public class RegisterProductLayoutController implements Initializable {
     @FXML
     public void onBtnClickedRegisterProductSubmit(ActionEvent event) {
     	if(isValidInput()) {
-    		//submit data callableStatement with my info
+    		
     	}
     }
     
@@ -87,7 +94,6 @@ public class RegisterProductLayoutController implements Initializable {
                     nameFile += fileC[i];
                 }
                 attach = file.toString();
-
                 tfProductImagePath.setText(nameFile.toString());
             }else{
                 attach = "";
@@ -165,7 +171,8 @@ public class RegisterProductLayoutController implements Initializable {
         strProductImagePath = tfProductImagePath.getText();
         
         
-        
+        //제품등록 callablestatement
+
         
         if (errorMessage.length() == 0){
             return true;
@@ -179,31 +186,33 @@ public class RegisterProductLayoutController implements Initializable {
         }
     }
     
-    public void clearFieldsEmail(){
+    public void clearFields(){
         tfProductName.setText("");
         tfProductPrice.setText("");
         tfaProductInformation.setText("");
     }
     
     public void loadComboboxShipmentCompany(){
-        emails = new ArrayList();
-        //load from db
-        //List<Person> persons = DAO.getInstance().findAll();
-        
-		/*
-		 * if (persons != null){ for (int i = 0; i < persons.size(); i++){
-		 * emails.add(persons.get(i).getEmail()); }
-		 * 
-		 * ObservableList<String> obsValues = FXCollections.observableArrayList(emails);
-		 * cbShipmentCompany.setItems(obsValues); }
-		 */
+      companys = DAOCompany.getInstance();
+      if(companys.getCompanySize() == 0) {
+    	  return;
+      }
+      List<String> values = new ArrayList<String>();
+      for(Company<Integer, String> c : companyList) {
+    	  values.add(c.getCompanyName());
+      }
     }
     
     public void loadComboboxCategory(){
-        List<String> values = new ArrayList();
-        //load from db
-        //values.add("CJ");
-     
+    	categorys = DAOCategory.getInstance();
+    	if(categorys.getCategorySize() == 0) {
+    		return;
+    	}
+        List<String> values = new ArrayList<String>();
+        for(Category<Integer, String> c : categoryList) {
+        	values.add(c.getCategoryName());
+        }
+        
         
         ObservableList<String> obsValues = FXCollections.observableArrayList(values);
         cbCategory.setItems(obsValues);
