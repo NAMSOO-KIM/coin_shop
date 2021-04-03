@@ -98,16 +98,21 @@ public class MyProductLayoutController implements Initializable {
     }
     @FXML
     void actionSearch(ActionEvent event) {
-    	if(strCurrentCategory.equals(tfSearch.getText()) {
+    	String newSearchTest = tfSearch.getText();
+    	if(strCurrentCategory.equals(newSearchTest)) {
     		return;
-    	}
+    	} else
+    		strCurrentCategory = newSearchTest;
     	currentProductList.clear();
     	
     	try{
             if (strCurrentCategory.equals("All")){
             	loadProduct(true);
             }else{
-                currentProductList = DAOProduct.getInstance().findByCategory(strSearchText);
+            	for(Product p : defaultProductList) {
+                	if(p.getCategoryName().equals(strCurrentCategory))
+                		currentProductList.add(p);
+                }
                 loadProduct(currentProductList);
             }
         }catch(NumberFormatException ime){
@@ -126,7 +131,11 @@ public class MyProductLayoutController implements Initializable {
     
     @FXML
     void actionCombobox(ActionEvent event) {
-    	strCurrentCategory = cbCategoryList.getValue();
+    	String newCategoryText = cbCategoryList.getValue();
+    	if(strCurrentCategory.equals(newCategoryText)) {
+    		return;
+    	}
+    	strCurrentCategory = newCategoryText;
     	currentProductList.clear();
     	try{
             if (strCurrentCategory.equals("All")){

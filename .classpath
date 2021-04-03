@@ -27,6 +27,6 @@
 	<classpathentry kind="lib" path="libs/mail-1.4.7.jar"/>
 	<classpathentry kind="lib" path="libs/mysql-connector-java-5.1.49-bin.jar"/>
 	<classpathentry kind="lib" path="libs/poi-4.1.2.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_281/lib/ext/ojdbc8.jar"/>
+	<classpathentry kind="lib" path="libs/ojdbc6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

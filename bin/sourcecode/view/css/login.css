@@ -1,23 +1,23 @@
 .button{
-    -fx-background-color: #5882FA;
+    -fx-background-color: #ffe991;
     -fx-background-radius: 5px;
     -fx-text-fill: white;
 }
 
 .button:hover{
-	-fx-background-color: #4B088A;
+	-fx-background-color: #fffecc;
     -fx-background-radius: 5px;
     -fx-text-fill: white;
 }
 
 .label{
-	-fx-background-color: #5882FA;
+	-fx-background-color: #AFD2FA;
 	-fx-text-fill: white;
 	-fx-font-family: Serif;
 	-fx-font-size: 24pt;
 }
 .table-view {
-    -fx-base: #2F4F4F;
+    -fx-base: #AFD2FA;
     -fx-control-inner-background: white;
     -fx-background-color: white;
     -fx-table-cell-border-color: transparent;
@@ -27,7 +27,7 @@
 
 .panelDesign{
     -fx-background-color: white;
-    -fx-border-color: #2F4F4F;
+    -fx-border-color: #AFD2FA;
     -fx-border-style: solid;
     -fx-border-width: 10px 1px 1px 1px; /* 25px top, 10px right, 4px bottom and 35px left */
 }

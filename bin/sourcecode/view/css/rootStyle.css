@@ -3,8 +3,8 @@
 }
 
 .button:hover{
-    -fx-background-color: #20B2AA;
-    -fx-border-color: #2F4F4F;
+    -fx-background-color: #fffed1;
+    -fx-border-color: #AFD2FA;
     -fx-border-style: solid;
     -fx-border-width: 0px 0px 0px 8px; /* 25px top, 10px right, 4px bottom and 35px left */
 }
