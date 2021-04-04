@@ -273,7 +273,7 @@ BEGIN
 	
 	update product set PRODUCT_STATUS = 'PROGRESS' where p_id = id;
 	update customer set coin = update_coin where c_id = id;
-	
+	COMMIT;
 END ;
 /
 exec buy_item(1,1,1,777);
@@ -291,6 +291,13 @@ exec buy_item(1,1,1,777);
 -- 배송회사 리스트 박스
 -- 내가 판매중인 물품
 -- 내가 구매중인 물품
+
+
+-- 판매 대기중인 것만 삭제(미완성)
+-- 상품 수정 (업데이트 19:46)
+
+-- to do
+-- 판매 대기중인 것만 삭제
 
 --------------------------------------------------------------------------------
 -- 내가 올린 상품 보기
@@ -366,33 +373,34 @@ END;
 exec product_insert(1,'충전기 또 팔아연', '좋아요 이거', 1000, 'clothing','hangin');
 
 --------------------------------------------------------------------------
--- 물품 구매 (마일리지 차감) -- 수정
+-- 물품 구매 (마일리지 차감) -- 수정(17:53)
 CREATE OR REPLACE PROCEDURE buy_item
 (
-	
-	p_id IN product.id%Type, 
-	product_customer_id IN orders.product_customer_id%Type, -- 판매자 id값
+   
+   p_id IN product.id%Type, 
+   product_customer_name IN customer.name%Type, -- 판매자 id값
     c_id IN customer.id%TYPE,
-	contract_date IN orders.contract_date%Type, -- 현재 날짜도 넣어줘.
-	update_coin IN customer.coin%Type
-	
-)	
+   contract_date IN orders.contract_date%Type, -- 현재 날짜도 넣어줘.
+   update_coin IN customer.coin%Type
+   
+)   
 IS
+   seller_id NUMBER;
 BEGIN  
-	
-	update product set PRODUCT_STATUS = 'PROGRESS', buy_customer_id = c_id where p_id = id;
-	update customer set coin = update_coin where c_id = id;
-	
-	insert into orders(id,contract_date,customer_id,product_id,product_customer_id)
-	values(ORDERS_id_seq.nextval,contract_date, c_id,p_id,product_customer_id);
-		
-	
+
+   SELECT id INTO seller_id
+   FROM customer
+   where name = product_customer_name;
+   
+   UPDATE product SET PRODUCT_STATUS = 'PROGRESS', buy_customer_id = c_id WHERE p_id = id;
+   UPDATE customer SET coin = update_coin WHERE c_id = id;
+   
+   INSERT INTO orders(id, contract_date, customer_id, product_id, product_customer_id)
+   VALUES(ORDERS_id_seq.nextval, contract_date, c_id, p_id, seller_id);
+      
+   
 END ;
 /
-
-
-exec buy_item(1,2,3,'2021-04-04',300);
-
 
 -----------------------------------------------------------------------------
 -- 수령 확인 버튼- 업데이트 09:55
@@ -524,6 +532,93 @@ END;
 var s refcursor;
 exec mybuy_product(1,:s);
 print s;
+
+
+-- 판매 대기중인 것만 삭제(미완성)
+
+-- 대기 상태는 자바에서 처리. 
+-- 물품 번호 (에러 제대로 작동 x)
+CREATE OR REPLACE PROCEDURE mysell_product_cancel
+(
+	p_id IN product.id%TYPE,
+	c_id IN customer.id%TYPE
+)
+IS 	
+BEGIN
+	-- 판매 취소
+	
+	
+	DELETE FROM product
+	where p_id = id ;
+	
+	DELETE FROM shipment
+	where p_id = product_id ;
+	
+	
+	commit;
+END; 
+/
+
+-- 실행
+
+exec mysell_product_cancel(3);
+----------------------------------------------------------------------------------- 
+-- 상품 수정
+
+CREATE OR REPLACE PROCEDURE mysell_product_update
+(
+	p_id IN product.id%TYPE,
+	customer_id IN customer.id%TYPE, -- 고객 id
+    p_name IN product.name%Type, -- 제품이름
+	P_information IN product.information%TYPE, --제품 설명
+	p_price IN product.price%TYPE, -- 제품 가격
+    p_category_name IN category.name%TYPE, --카테고리 이름
+	shipment_name IN shipment_company.name%TYPE -- 배송회사 이름
+	
+)
+IS 	
+c_category_id NUMBER;
+shipcom_id NUMBER;
+
+BEGIN
+	
+	
+	
+	SELECT id INTO c_category_id
+	FROM category
+	where name=p_category_name;
+	
+	SELECT id INTO shipcom_id
+	FROM shipment_company
+	where name=shipment_name;
+	
+	UPDATE product SET 
+	
+	
+	name= p_name,
+	information= P_information,
+	price = p_price,
+	category_id= c_category_id,
+	category_name= p_category_name
+	
+	where p_id = id ;
+	
+	UPDATE shipment SET shipment_company_id= shipcom_id 
+	where shipcom_id = id ;
+	
+	
+	commit;
+END; 
+/
+
+EXEC mysell_product_update(7,3,'두번입고 팔아요','좋아요 이거',3000,'의류','한진');
+
+--------------------------------------------------------------------
+
+
+
+
+
 
 
 -----------------------------------------------------------------------------
