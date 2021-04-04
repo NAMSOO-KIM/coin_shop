@@ -179,10 +179,9 @@ END;
 -- 카테고리 별 조회--
 -- 물품 구매( 마일리지 차감)
 -- 모든 제품 조회(구매자 포함) --4/5 (02:09 업데이트)
-
--- to do 
 -- 물품 구매 ( 마일리지 차감) 트리거로
-
+-- 물품 구매( 마일리지 차감) - 수정전 (구버전)
+-- 물품 구매( 마일리지 차감) - 수정 후(최신버전)
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
@@ -284,7 +283,8 @@ exec product_detail(1,:pro_datail)
 print pro_detail;
 
 ------------------------------------------------------------------------------------------
--- 물품 구매( 마일리지 차감)
+"
+-- 물품 구매( 마일리지 차감) - 수정전 (구버전)
 CREATE OR REPLACE PROCEDURE buy_item
 (
 	
@@ -302,15 +302,26 @@ BEGIN
 END ;
 /
 exec buy_item(1,1,1,777);
+"
+-----------------------------------------------------------------------------------------------
+"
+-- 물품 구매( 마일리지 차감) - 수정 후(최신버전)
+CREATE OR REPLACE PROCEDURE buy_item
+(
+	
+	p_id IN product.id%Type
+	
+)	
+IS
+BEGIN
+	
+	update product set PRODUCT_STATUS = 'PROGRESS' where p_id = id;
+	COMMIT;
+END ;
+/
+"
 
-
-
-
--- to do 
--- 물품 구매 ( 마일리지 차감) 트리거로
-
-CREATE OR REPLACE TRIGGER product_buy_trigger
-AFTER 
+------------------------------------------------------------------------------------------------------
 
 
 -----------------------------------------------------------------------------
@@ -330,6 +341,8 @@ AFTER
 -- 상품 수정 (업데이트 19:46)
 -- 판매 대기중인 것만 삭제(업데이트 20:48)
 -- 물품 구매(대기상태 = 'READY'만 거래가능) - 4/4 23:03 업데이트
+-- 수령 확인 트리거 (4:00 업데이트)
+
 --------------------------------------------------------------------------------
 -- 내가 올린 상품 보기
 CREATE OR REPLACE procedure customer_sell_product
@@ -405,7 +418,7 @@ exec product_insert(1,'충전기 또 팔아연', '좋아요 이거', 1000, 'clot
 
 --------------------------------------------------------------------------
 
---물품 구매(대기상태 = 'READY'만 거래가능) - 4/4 23:03 업데이트
+--물품 구매(대기상태 = 'READY'만 거래가능) - 4/4 04:28 업데이트
 
 CREATE OR REPLACE PROCEDURE buy_item -- 최신버전
 (
@@ -414,14 +427,13 @@ CREATE OR REPLACE PROCEDURE buy_item -- 최신버전
    product_customer_name IN customer.name%Type, -- 판매자 id값
    c_id IN customer.id%TYPE,
    contract_date IN orders.contract_date%Type, -- 현재 날짜도 넣어줘.
-   update_coin IN customer.coin%Type,
+   
    ispossible OUT NUMBER
 )   
 IS
    seller_id NUMBER;
    p_product_status CLOB;
-   --ispossible NUMBER
-   
+    
 BEGIN  
    
    
@@ -436,7 +448,6 @@ BEGIN
 	   
 		  
 	   UPDATE product SET PRODUCT_STATUS = 'PROGRESS', buy_customer_id = c_id WHERE p_id = id;
-	   UPDATE customer SET coin = update_coin WHERE c_id = id;
 	   
 	   INSERT INTO orders(id, contract_date, customer_id, product_id, product_customer_id)
 	   VALUES(ORDERS_id_seq.nextval, contract_date, c_id, p_id, seller_id);
@@ -450,54 +461,20 @@ BEGIN
 END ;
 /
 
-VAR POSSIBLE NUMBER;
-EXEC buy_item(1,2,4,'21/03/25',1400,:POSSIBLE);
-PRINT POSSIBLE;
+--VAR POSSIBLE NUMBER;
+--EXEC buy_item(1,2,4,'21/03/25',1400,:POSSIBLE);
+--PRINT POSSIBLE;
 ------------------------------------------
------------------------------------------------------------------------------
--- 수령 확인 버튼- 업데이트 09:55
--- 현재 거래중인 물품만 수령확인 가능(문자열 일치 비교) -자바에서 
--- procedure에서는 update만
 
-CREATE OR REPLACE PROCEDURE product_accept
-(
-    
-	-- 수령확인 누를 때 현재 구매자 id,판매자id, 제품 id, 판매금액 받기
-	-- product에 product_id에 상태 변경, customer_id 에 product_customer_id 에게 코인 지급
-	
-	-- 구매자id, 제품id, 판매자id, 판매금액
-	c_id IN customer.id%Type,
-	p_id IN product.id%TYPE,
-	p_c_id IN product.customer_id%Type, -- 판매자
-	p_price IN product.price%Type
-	
-)	
-IS
-BEGIN  
-	
-	-- product에 product_id에 상태 변경, customer_id 에 product_customer_id 에게 코인 지급
-	-- 현재 구매자의 코인을 받아오기
-	
-	-- 판매자 마일리지 추가
-	update customer set coin = coin + p_price where p_c_id = id;
-	
-	UPDATE PRODUCT SET product_status = 'FINISH' -- 거래 완료
-	where p_id = id;
-	
-END ;
-/
-
-exec product_accept(3,1,2,1000);
 ----------------------------------------------------------
--- 공사중 --------------------------------------------------
---수령 확인 
--- 수령 확인을 누르면 판매자에게 돈 입금
-CREATE OR REPLACE TRIGGER TRIG_TEST_EMP
-	BEFORE UPDATE OF PRODUCT_STATUS ON PRODUCT   --컬럼명 ON 테이블 명
+--수령 확인 트리거 (4:00 업데이트)
+-- 수령 확인 누르면 판매자에게 금액 전달 + 거래성사금액 100마일리지 지급. 구매자도 거래성사 시 100마일리지 지급
+CREATE OR REPLACE TRIGGER TRIG_TEST
+	AFTER UPDATE OF PRODUCT_STATUS ON PRODUCT   --컬럼명 ON 테이블 명
 	FOR EACH ROW
 DECLARE
 --p_status product.PRODUCT_STATUS%TYPE;
-s_msg   VARCHAR2(100) := '';
+
 BEGIN
 
 	-- 1. 확인 버튼 누르면 상태값(progress -> finish) 변경
@@ -506,20 +483,57 @@ BEGIN
 	
 	IF :NEW.PRODUCT_STATUS = 'FINISH' THEN
 		UPDATE CUSTOMER
-		SET coin = coin + PRODUCT.PRICE +100
-		WHERE CUSTOMER_ID = ID;
+		SET coin = coin + :NEW.PRICE +100
+		WHERE :NEW.CUSTOMER_ID = ID;
 		
+		
+		UPDATE CUSTOMER
+		SET coin = coin + :NEW.PRICE +100
+		WHERE :NEW.BUY_CUSTOMER_ID = ID;
+		
+		DBMS_OUTPUT.PUT_LINE('거래성공!!  + 마일리지 100 지급!!');
 		
 	ELSIF :NEW.PRODUCT_STATUS = 'PROGRESS' THEN
 		
 		UPDATE CUSTOMER
-		SET coin = coin - PRODUCT.price
-		where CUSTOMER_ID = id;
-			
+		SET coin = coin - :NEW.price
+		where :NEW.CUSTOMER_ID = id;
+		DBMS_OUTPUT.PUT_LINE('거래 신청 완료!!');
 	END IF;
 	
 END;
 /
+
+
+--실행
+
+update product set PRODUCT_STATUS = 'PROGRESS' where id = 3;
+update product set PRODUCT_STATUS = 'FINISH' where id = 3;
+
+-- 공사중 ....
+-- 수령확인 버튼 클릭 시 이벤트
+---------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE receipt_click
+(
+ -- 제품 id 받아서 상태만 변경
+ 
+   p_id IN product.id%TYPE
+   
+)
+IS 
+BEGIN
+  
+   UPDATE product SET PRODUCT_STATUS = 'FINISH' WHERE p_id = id;
+   commit;
+END;
+/
+
+
+
+
+
+
+
 
 
 
