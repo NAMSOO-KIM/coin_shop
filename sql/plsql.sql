@@ -15,13 +15,13 @@
 -- 카테고리 별 조회 프로시저
 -- 제품 상세정보
 -- 카테고리 별 조회
--- 물품 구매( 마일리지 차감)
+-- 물품 구매 (마일리지 차감) --(04-04 09:08 업데이트)
 
 
 -- 마이페이지 -------------------------------
 -- 내가 올린 상품 보기 
 -- 물품 등록 		
--- 수령 확인 버튼(미완성)
+-- 수령 확인 버튼- 업데이트 09:55
 -- 카테고리 리스트 박스
 -- 배송회사 리스트 박스
 -- 내가 판매중인 물품
@@ -286,7 +286,7 @@ exec buy_item(1,1,1,777);
 
 -- 내가 올린 상품 보기 
 -- 물품 등록 		
--- 수령 확인 버튼(미완성)
+-- 수령 확인 버튼- 업데이트 09:55
 -- 카테고리 리스트 박스
 -- 배송회사 리스트 박스
 -- 내가 판매중인 물품
@@ -363,52 +363,73 @@ BEGIN
 END; 
 /
 
-<<<<<<< HEAD
 exec product_insert(1,'충전기 또 팔아연', '좋아요 이거', 1000, 'clothing','hangin');
 
 --------------------------------------------------------------------------
--- 물품 구매 (마일리지 차감)
+-- 물품 구매 (마일리지 차감) -- 수정
 CREATE OR REPLACE PROCEDURE buy_item
 (
 	
-	p_id IN product.id%Type,
-	p_price IN product.price%Type,
+	p_id IN product.id%Type, 
+	product_customer_id IN orders.product_customer_id%Type, -- 판매자 id값
     c_id IN customer.id%TYPE,
+	contract_date IN orders.contract_date%Type, -- 현재 날짜도 넣어줘.
 	update_coin IN customer.coin%Type
+	
 )	
 IS
 BEGIN  
 	
-	update product set PRODUCT_STATUS = 'PROGRESS' where p_id = id;
+	update product set PRODUCT_STATUS = 'PROGRESS', buy_customer_id = c_id where p_id = id;
 	update customer set coin = update_coin where c_id = id;
+	
+	insert into orders(id,contract_date,customer_id,product_id,product_customer_id)
+	values(ORDERS_id_seq.nextval,contract_date, c_id,p_id,product_customer_id);
+		
 	
 END ;
 /
 
-exec buy_item(1,1,1,777);
+
+exec buy_item(1,2,3,'2021-04-04',300);
 
 
 -----------------------------------------------------------------------------
--- 수령 확인 버튼(미완성)
-
--- 현재 거래중인 물품만 수령확인 가능(문자열 일치 비교), procedure에서는 update만
+-- 수령 확인 버튼- 업데이트 09:55
+-- 현재 거래중인 물품만 수령확인 가능(문자열 일치 비교) -자바에서 
+-- procedure에서는 update만
 
 CREATE OR REPLACE PROCEDURE product_accept
 (
-    p_id IN product.id%TYPE,
+    
+	-- 수령확인 누를 때 현재 구매자 id,판매자id, 제품 id, 판매금액 받기
+	-- product에 product_id에 상태 변경, customer_id 에 product_customer_id 에게 코인 지급
+	
+	-- 구매자id, 제품id, 판매자id, 판매금액
+	c_id IN customer.id%Type,
+	p_id IN product.id%TYPE,
+	p_c_id IN product.customer_id%Type, -- 판매자
+	p_price IN product.price%Type
+	
 	
 )	
 IS
 BEGIN  
-	--테이블에 데이터 넣기
-	UPDATE PRODUCT SET (status = 'FINISH') -- 거래 완료
-	where p_id = id
-	COMMIT;
+	
+	-- product에 product_id에 상태 변경, customer_id 에 product_customer_id 에게 코인 지급
+	-- 현재 구매자의 코인을 받아오기
+	
+	-- 판매자 마일리지 추가
+	update customer set coin = coin + p_price where p_c_id = id;
+	
+	UPDATE PRODUCT SET product_status = 'FINISH' -- 거래 완료
+	where p_id = id;
 	
 END ;
 /
 
-
+exec product_accept(3,1,2,1000);
+-------------------------------------------------------
 --------------------------------------------------------
 -- 카테고리 리스트 박스
 
