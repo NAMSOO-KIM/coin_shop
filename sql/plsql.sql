@@ -677,57 +677,9 @@ END;
 /
 
 -- 실행
-exec mysell_product_cancel(6);
+
 ----------------------------------------------------------------------------------- 
 -- 상품 수정
-
-CREATE OR REPLACE PROCEDURE mysell_product_update
-(
-	p_id IN product.id%TYPE,
-	customer_id IN customer.id%TYPE, -- 고객 id
-    p_name IN product.name%Type, -- 제품이름
-	P_information IN product.information%TYPE, --제품 설명
-	p_price IN product.price%TYPE, -- 제품 가격
-    p_category_name IN category.name%TYPE, --카테고리 이름
-	shipment_name IN shipment_company.name%TYPE -- 배송회사 이름
-	
-)
-IS 	
-c_category_id NUMBER;
-shipcom_id NUMBER;
-
-BEGIN
-	
-	
-	
-	SELECT id INTO c_category_id
-	FROM category
-	where name=p_category_name;
-	
-	SELECT id INTO shipcom_id
-	FROM shipment_company
-	where name=shipment_name;
-	
-	UPDATE product SET 
-	
-	
-	name= p_name,
-	information= P_information,
-	price = p_price,
-	category_id= c_category_id,
-	category_name= p_category_name
-	
-	where p_id = id ;
-	
-	UPDATE shipment SET shipment_company_id= shipcom_id 
-	where shipcom_id = id ;
-	
-	
-	commit;
-END; 
-/
-
-EXEC mysell_product_update(7,3,'두번입고 팔아요','좋아요 이거',3000,'의류','한진');
 
 --------------------------------------------------------------------
 
