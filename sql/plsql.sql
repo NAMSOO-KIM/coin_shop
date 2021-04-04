@@ -171,20 +171,45 @@ END;
 --                          메인 페이지                                     --
 -----------------------------------------------------------------------------
 
+
+-- 모든 제품 조회(구매자 포함) --4/5 (02:09 업데이트)
 -- 전체 글 조회 프로시저
 -- 카테고리 별 조회 프로시저
 -- 제품 상세정보
 -- 카테고리 별 조회--
 -- 물품 구매( 마일리지 차감)
+-- 모든 제품 조회(구매자 포함) --4/5 (02:09 업데이트)
 
-"""
--- 샘플데이터
-INSERT INTO PRODUCT(id,CUSTOMER_ID,NAME,INFORMATION,PRICE,CATEGORY_ID, SHIPMENT_ID)
-	VALUES(1, 1, 'asdf', 'fasdfsgea', 1000, 1, 1);
+-- to do 
+-- 물품 구매 ( 마일리지 차감) 트리거로
 
-INSERT INTO Cateogry(id,CUSTOMER_ID,NAME,INFORMATION,PRICE,CATEGORY_ID, SHIPMENT_ID)
-	VALUES(1, 1, 'asdf', 'fasdfsgea', 1000, 1, 1);
-"""
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+
+-- 모든 제품 조회(구매자 포함) --4/5 (02:09 업데이트)
+CREATE OR REPLACE procedure ALL_product
+(
+ALL_PRODUCT_record  OUT SYS_REFCURSOR
+)
+AS
+BEGIN
+OPEN ALL_PRODUCT_record FOR
+SELECT p.id, p.name, p.information, p.price, c.name, p.category_name, p.product_status, sp.name, (select name from customer where id= p.buy_customer_id) as buy_custmoer_name
+FROM product p
+INNER JOIN customer c on p.customer_id = c.id
+INNER JOIN shipment s on p.shipment_id = s.id
+INNER JOIN shipment_company sp on sp.id = s.shipment_company_id;
+END;
+/
+var pro_detail refcursor;
+exec ALL_product(:pro_detail);
+print pro_detail;
+
+
+
+
+
+----------------------------------------------------------------------
 
 -- 전체 글 조회
 CREATE OR REPLACE procedure select_productListAll
@@ -278,6 +303,16 @@ END ;
 /
 exec buy_item(1,1,1,777);
 
+
+
+
+-- to do 
+-- 물품 구매 ( 마일리지 차감) 트리거로
+
+CREATE OR REPLACE TRIGGER product_buy_trigger
+AFTER 
+
+
 -----------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------
@@ -294,7 +329,7 @@ exec buy_item(1,1,1,777);
 
 -- 상품 수정 (업데이트 19:46)
 -- 판매 대기중인 것만 삭제(업데이트 20:48)
-
+-- 물품 구매(대기상태 = 'READY'만 거래가능) - 4/4 23:03 업데이트
 --------------------------------------------------------------------------------
 -- 내가 올린 상품 보기
 CREATE OR REPLACE procedure customer_sell_product
@@ -369,35 +404,56 @@ END;
 exec product_insert(1,'충전기 또 팔아연', '좋아요 이거', 1000, 'clothing','hangin');
 
 --------------------------------------------------------------------------
--- 물품 구매 (마일리지 차감) -- 수정(17:53)
-CREATE OR REPLACE PROCEDURE buy_item
+
+--물품 구매(대기상태 = 'READY'만 거래가능) - 4/4 23:03 업데이트
+
+CREATE OR REPLACE PROCEDURE buy_item -- 최신버전
 (
    
    p_id IN product.id%Type, 
    product_customer_name IN customer.name%Type, -- 판매자 id값
-    c_id IN customer.id%TYPE,
+   c_id IN customer.id%TYPE,
    contract_date IN orders.contract_date%Type, -- 현재 날짜도 넣어줘.
-   update_coin IN customer.coin%Type
-   
+   update_coin IN customer.coin%Type,
+   ispossible OUT NUMBER
 )   
 IS
    seller_id NUMBER;
+   p_product_status CLOB;
+   --ispossible NUMBER
+   
 BEGIN  
-
-   SELECT id INTO seller_id
-   FROM customer
-   where name = product_customer_name;
    
-   UPDATE product SET PRODUCT_STATUS = 'PROGRESS', buy_customer_id = c_id WHERE p_id = id;
-   UPDATE customer SET coin = update_coin WHERE c_id = id;
    
-   INSERT INTO orders(id, contract_date, customer_id, product_id, product_customer_id)
-   VALUES(ORDERS_id_seq.nextval, contract_date, c_id, p_id, seller_id);
-      
+   select product_status into p_product_status
+   from product
+   where p_id=id;
    
+   IF p_product_status = 'READY' THEN
+	   SELECT id INTO seller_id
+	   FROM customer
+	   where name = product_customer_name;
+	   
+		  
+	   UPDATE product SET PRODUCT_STATUS = 'PROGRESS', buy_customer_id = c_id WHERE p_id = id;
+	   UPDATE customer SET coin = update_coin WHERE c_id = id;
+	   
+	   INSERT INTO orders(id, contract_date, customer_id, product_id, product_customer_id)
+	   VALUES(ORDERS_id_seq.nextval, contract_date, c_id, p_id, seller_id);
+	   ispossible := 1;
+	   commit;
+	   
+	ELSE
+	   ispossible := 0;
+	
+    END IF;
 END ;
 /
 
+VAR POSSIBLE NUMBER;
+EXEC buy_item(1,2,4,'21/03/25',1400,:POSSIBLE);
+PRINT POSSIBLE;
+------------------------------------------
 -----------------------------------------------------------------------------
 -- 수령 확인 버튼- 업데이트 09:55
 -- 현재 거래중인 물품만 수령확인 가능(문자열 일치 비교) -자바에서 
@@ -414,7 +470,6 @@ CREATE OR REPLACE PROCEDURE product_accept
 	p_id IN product.id%TYPE,
 	p_c_id IN product.customer_id%Type, -- 판매자
 	p_price IN product.price%Type
-	
 	
 )	
 IS
@@ -433,6 +488,42 @@ END ;
 /
 
 exec product_accept(3,1,2,1000);
+----------------------------------------------------------
+-- 공사중 --------------------------------------------------
+--수령 확인 
+-- 수령 확인을 누르면 판매자에게 돈 입금
+CREATE OR REPLACE TRIGGER TRIG_TEST_EMP
+	BEFORE UPDATE OF PRODUCT_STATUS ON PRODUCT   --컬럼명 ON 테이블 명
+	FOR EACH ROW
+DECLARE
+--p_status product.PRODUCT_STATUS%TYPE;
+s_msg   VARCHAR2(100) := '';
+BEGIN
+
+	-- 1. 확인 버튼 누르면 상태값(progress -> finish) 변경
+	
+	-- 2. 마일리지를 판매자에게 지급. 거래 성사되어 마일리지 양쪽에 100씩 지급
+	
+	IF :NEW.PRODUCT_STATUS = 'FINISH' THEN
+		UPDATE CUSTOMER
+		SET coin = coin + PRODUCT.PRICE +100
+		WHERE CUSTOMER_ID = ID;
+		
+		
+	ELSIF :NEW.PRODUCT_STATUS = 'PROGRESS' THEN
+		
+		UPDATE CUSTOMER
+		SET coin = coin - PRODUCT.price
+		where CUSTOMER_ID = id;
+			
+	END IF;
+	
+END;
+/
+
+
+
+----------------------------------------------------
 -------------------------------------------------------
 --------------------------------------------------------
 -- 카테고리 리스트 박스
@@ -480,30 +571,49 @@ print ship_com_all;
 --------------------------------------------------
 -- 내가 판매중인 물품
 
-CREATE OR REPLACE PROCEDURE mysell_product
-(
+/* 등록 물품 수정 */
+ALTER TABLE PRODUCT ENABLE ROW MOVEMENT; -- 파티션 수정
 
-	c_id IN customer.id%TYPE, -- 고객 id
-	mysell_list_record OUT SYS_REFCURSOR
-	
+CREATE OR REPLACE PROCEDURE mysell_product_update
+(
+   p_id IN product.id%TYPE,
+   customer_id IN customer.id%TYPE, -- 고객 id
+    p_name IN product.name%Type, -- 제품이름
+   P_information IN product.information%TYPE, --제품 설명
+   p_price IN product.price%TYPE, -- 제품 가격
+    p_category_name IN category.name%TYPE, --카테고리 이름
+   shipment_name IN shipment_company.name%TYPE -- 배송회사 이름
+   
 )
-IS 	
+IS 
+c_category_id NUMBER;
+shipcom_id NUMBER;
 BEGIN
-	
-	--INSERT INTO category(id,name)	
-	--- category 아이디 변수로 저장
-	OPEN mysell_list_record FOR
-	SELECT name, price, category_name, product_status
-	FROM product
-	where customer_id=c_id;
-	
-END; 
+
+   SELECT id INTO c_category_id
+   FROM category
+   where name=p_category_name;
+   
+   SELECT id INTO shipcom_id
+   FROM shipment_company
+   where name=shipment_name;
+
+   UPDATE product SET
+   name= p_name,
+   information= P_information,
+   price = p_price,
+   category_id= c_category_id,
+   category_name= p_category_name
+   where p_id = id ;
+   
+   DBMS_OUTPUT.PUT_LINE(shipcom_id);
+   UPDATE shipment SET shipment_company_id = shipcom_id
+   where id = p_id ;
+   
+   commit;
+END;
 /
 
--- 실행
-var s refcursor;
-exec mysell_product(1,:s);
-print s;
 
 ---------------------------------------------------------------------------
 -- 내가 구매중인 물품
@@ -635,5 +745,4 @@ print c
 
 
 ---------------------------------------------------------------------------------
-
 
