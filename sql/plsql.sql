@@ -200,12 +200,30 @@ INNER JOIN shipment s on p.shipment_id = s.id
 INNER JOIN shipment_company sp on sp.id = s.shipment_company_id;
 END;
 /
+"
 var pro_detail refcursor;
 exec ALL_product(:pro_detail);
 print pro_detail;
+"
 
+-- 모든 제품 뷰를 조회(구매자 포함) -- 4/5 (10:32 업데이트)
+CREATE OR REPLACE procedure all_product_view_select
+(
+	all_product_view_record  OUT 		SYS_REFCURSOR
+)
+IS
+BEGIN
+	OPEN all_product_view_record FOR
+	SELECT *
+	FROM all_product_view;
+END;
+/
 
-
+"
+var p_all_ref refcursor;
+exec all_product_view_select(:p_all_ref);
+print p_all_ref;
+"
 
 
 ----------------------------------------------------------------------

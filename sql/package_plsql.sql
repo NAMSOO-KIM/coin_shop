@@ -128,6 +128,11 @@ AS
 		ranking_cursor  OUT 		SYS_REFCURSOR
 	);
 	
+	procedure all_product_view_select
+	(
+		all_product_view_record  OUT 		SYS_REFCURSOR
+	)
+	
 	
 	
 	
@@ -522,6 +527,18 @@ AS
 		ORDER BY c.coin DESC;
 	END select_coinRanking;
 	
+	procedure all_product_view_select
+	(
+		all_product_view_record  OUT 		SYS_REFCURSOR
+	)
+	IS
+	BEGIN
+		OPEN all_product_view_record FOR
+		SELECT *
+		FROM all_product_view;
+	END all_product_view_select;
+	
+
 	
 END COIN_PKG;
 /

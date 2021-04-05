@@ -419,12 +419,23 @@ CREATE OR REPLACE TRIGGER TRIG_TEST
 	END;
 	
 	
+-- 뷰 정의 (전체 물품 목록 조회)
+"
+권한 필요할 때 사용
+sqlplus system/oracle@localhost:1521/xepdb1
 
+alter user coin
+quota unlimited on users;
 
-
-
-
-
+grant create any table to coin;
+"
+create or replace view all_product_view
+AS
+SELECT p.id, p.name, p.information, p.price, c.name as product_custmoer_name, p.category_name, p.product_status, sp.name as ship_company_name, (select name from customer where id= p.buy_customer_id) as buy_custmoer_name
+FROM product p
+INNER JOIN customer c on p.customer_id = c.id
+INNER JOIN shipment s on p.shipment_id = s.id
+INNER JOIN shipment_company sp on sp.id = s.shipment_company_id;
 
 
 
