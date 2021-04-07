@@ -19,6 +19,7 @@ public class DAOProduct {
    private Connection conn = DBConnection.getConnection();
    
    private DAOProduct() {
+	   products = new ArrayList<Product>();
    }
    
    public static DAOProduct getInstance() {
@@ -30,10 +31,12 @@ public class DAOProduct {
       }
    }
    
-   public void setAllProduct() {
-      
+   public void refreshProduct() {
+	   this.products.clear();
    }
-   
+   public void addProduct(Product product) {
+	   products.add(product);
+   }
    public ArrayList<Product> getProduct() {
 	   return products;
    }
@@ -57,22 +60,45 @@ public class DAOProduct {
       return productByCategory;
    }
    
-   public ArrayList<Product> findByName(String sellerName) throws NullPointerException {
-      ArrayList<Product> productByName = new ArrayList<Product>();
+   public ArrayList<Product> findBySeller(String sellerName) throws NullPointerException {
+      ArrayList<Product> productBySeller = new ArrayList<Product>();
       try {
          for(Product p : products) {
             if(p.getSellerId().equals(sellerName)) {
-               productByName.add(p);
+            	productBySeller.add(p);
             }
          }
       } catch(NullPointerException e) {
-    	  Alert alert = new Alert(AlertType.WARNING);
-          alert.setTitle("Warning !!");
-          alert.setHeaderText("등록된 제품이 없습니다 !");
-          alert.showAndWait();
+    	  System.out.println("해당 고객의 판매제품이 없습니다");
+    	  //Alert alert = new Alert(AlertType.WARNING);
+          //alert.setTitle("Warning !!");
+          //alert.setHeaderText("등록된 제품이 없습니다 !");
+          //alert.showAndWait();
       }
-      return productByName;
+      return productBySeller;
    }
+   
+	public ArrayList<Product> findByBuyer(String buyerName) throws NullPointerException {
+		ArrayList<Product> productByBuyer = new ArrayList<Product>();
+		try {
+			for (Product p : products) {
+				if (p.getBuyerId() == null)
+					continue;
+				else {
+					if (p.getBuyerId().equals(buyerName)) {
+						productByBuyer.add(p);
+					}
+				}
+			}
+		} catch (NullPointerException e) {
+			System.out.println("해당 고객의 구매제품이 없습니다");
+			// Alert alert = new Alert(AlertType.WARNING);
+			// alert.setTitle("Warning !!");
+			// alert.setHeaderText("등록된 제품이 없습니다 !");
+			// alert.showAndWait();
+		}
+		return productByBuyer;
+	}
    
    public ArrayList<Product> findByProductName(String productName) throws NullPointerException {
 	   ArrayList<Product> productByProductName = new ArrayList<Product>();

@@ -3,7 +3,7 @@
 --------------------------------------------
 /* 기존 데이터 리셋 */
 
-DELETE FROM customer;
+DELETE FROM customer ;
 DELETE FROM category;
 DELETE FROM product;
 DELETE FROM orders;
@@ -11,6 +11,8 @@ DELETE FROM shipment;
 DELETE FROM shipment_company;
 
 /* customer */
+
+customer_insert_version2
 
 INSERT INTO customer VALUES (1, 'Cho', 'Cho', 'Suwon', 010-1234-5678 , 1000, 100);
 INSERT INTO customer VALUES (2, 'Kim', 'Kim', 'Seoul', 010-1234-8765 , 2000, 200);
@@ -28,6 +30,7 @@ INSERT INTO product VALUES (5, 1, '무선 충전기', '충전 빠르고 무선�
 INSERT INTO product VALUES (6, 2, '이것이 자바다', '이것이 자바다 1, 2권 세트로 팜', 800, 4, '도서', 'READY', 6,-1);
 INSERT INTO product VALUES (7, 3, '청바지', '한번 입고 안입은 청바지 팔아여', 1400, 1, '의류', 'READY', 7,-1);
 INSERT INTO product VALUES (8, 4, '프린트 원피스', '사이즈 F 입니당', 1000, 1, '의류', 'READY', 8,-1);
+
 
 /* category */
 
@@ -63,3 +66,6 @@ INSERT INTO shipment_company VALUES (2, '롯데');
 INSERT INTO shipment_company VALUES (3, 'CJ대한통운');
 INSERT INTO shipment_company VALUES (4, '로젠택배');
 INSERT INTO shipment_company VALUES (5, '우체국');
+
+
+ 

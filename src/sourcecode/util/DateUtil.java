@@ -4,9 +4,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 /**
- *
  * @author Fábio Augusto Rodrigues
  */
+
 public class DateUtil {
     
     public static String formatDate(LocalDate localDate){  

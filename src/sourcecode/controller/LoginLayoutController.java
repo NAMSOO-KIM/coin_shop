@@ -100,9 +100,7 @@ public class LoginLayoutController implements Initializable {
 					}
 					else {
 						System.out.println("로그인 성공");
-						procCallCustomerInfo(strID);
-						//procGetCategoryInfo();
-						//procGetCompanyInfo();
+						mainApp.procCallCustomerInfo(strID);
 						return true;
 					}
 				} catch (SQLException e) {
@@ -115,41 +113,6 @@ public class LoginLayoutController implements Initializable {
 				return true; //Success
 	    }
 	   
-	   private boolean procCallCustomerInfo(String strID) {
-		   CustomerMySelf customerMyself = CustomerMySelf.getInstance();
-		   OracleCallableStatement ocstmt = null;
-		   
-		   String runP = "{ call sp_get_customer_info(?, ?) }";
-		   try {
-			   Connection conn = DBConnection.getConnection();
-			   Statement stmt = conn.createStatement();
-			   CallableStatement callableStatement = conn.prepareCall(runP.toString());
-			   callableStatement.setString(1, strID);
-			   callableStatement.registerOutParameter(2, OracleTypes.CURSOR);
-			   callableStatement.executeUpdate();	
-			   ocstmt = (OracleCallableStatement)callableStatement;
-
-			  
-			   ResultSet rs =  ocstmt.getCursor(2);
-			   while (rs.next()) {
-			        String field1 = rs.getString(1);
-			        customerMyself.getCustomer().setId(rs.getInt("id"));
-			        customerMyself.getCustomer().setName(rs.getString("name"));
-	    			customerMyself.getCustomer().setPassword(rs.getString("password"));
-	    			customerMyself.getCustomer().setPhone(rs.getString("phone_number"));
-	    			customerMyself.getCustomer().setZipcode(rs.getString("zipcode"));
-	    			customerMyself.getCustomer().setVolunteer_time(rs.getInt("volunteer_working_time"));
-	    			customerMyself.getCustomer().setCoin(rs.getInt("coin"));
-			        System.out.println(customerMyself.getCustomer().getName()+" 로그인 정보 동기화 완료");
-			   }
-		   } catch(Exception e) {
-			   e.printStackTrace();
-			   return false;
-		   }
-			
-		   return true;
-			
-	   }
 	   
 	   
 	   
@@ -202,11 +165,9 @@ public class LoginLayoutController implements Initializable {
 			RegisterMemberDialogController controller = loader.getController();
 			controller.setTitle(title);
 			controller.setDialogStage(stageRegMember);
-			//controller.setPerson(person);
 
 			stageRegMember.showAndWait();
 			return true;
-			//return controller.isOkClicked();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;

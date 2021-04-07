@@ -30,7 +30,7 @@ import sourcecode.util.DateUtil;
 
 
 public class RegisterMemberDialogController implements Initializable {
-
+	
 	@FXML private Label lblTitle;
     @FXML private JFXTextField tfID;
     @FXML private JFXPasswordField pfPW;
@@ -136,11 +136,9 @@ public class RegisterMemberDialogController implements Initializable {
     
     @FXML
     private void registerNewMember(ActionEvent event) {
-        
     	
     	if(isValidInput()) {
     		//register member data callableStatement
-    
     		procRegisterID(customerMyself.getCustomer());
     		currentStage.close();
     	}

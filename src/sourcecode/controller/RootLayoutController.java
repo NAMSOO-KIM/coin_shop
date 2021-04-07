@@ -23,30 +23,25 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import oracle.jdbc.OracleCallableStatement;
 import oracle.jdbc.OracleTypes;
 import sourcecode.MainApp;
-import sourcecode.model.CustomerMySelf;
-import sourcecode.model.DAOCategory;
-import sourcecode.model.DAOCompany;
-import sourcecode.model.Category;
-import sourcecode.model.Company;
-import sourcecode.model.Customer;
-
+import sourcecode.model.*;
+import sourcecode.controller.*;
 public class RootLayoutController implements Initializable {
     
     MainApp mainApp;
     Stage currentStage;
-    
    
     @FXML private JFXButton btnAllProduct;
     @FXML private JFXButton btnMyProduct;
     @FXML private JFXButton btnRank;
-    
-    @FXML private AnchorPane paneSegment;
+    @FXML private Text txtMyPoint;
+    @FXML private Pane paneSegment;
     private AnchorPane paneAllProduct;
     private AnchorPane paneMyProduct;
     private AnchorPane paneRankChart;
@@ -60,9 +55,7 @@ public class RootLayoutController implements Initializable {
     private MyProductLayoutController myProductController;
     private RankChartLayoutController rankChartController;
    
-	private DAOCategory daoCategory;
-	private DAOCompany daoCompany;
-	
+	private CustomerMySelf myInfo;
     static final private int segment = 3;
     static final private String[] fxmlPath = {"view/fxml/ProductLayout.fxml"
     		, "view/fxml/MyProductLayout.fxml"
@@ -71,18 +64,25 @@ public class RootLayoutController implements Initializable {
     
     @FXML
     private void OnBtnClickedAllProduct(ActionEvent event) {
+    	mainApp.procGetProductInfo();
+    	allProductController.loadProduct(true);
     	paneAllProduct.toFront();
     	System.out.println("AllProduct");
     }
     
     @FXML
     private void onBtnClickedMyProduct(ActionEvent event) {
+    	mainApp.procGetProductInfo();
+    	myProductController.loadProduct_sel(true);
+    	myProductController.loadProduct_buy(true);
     	paneMyProduct.toFront();
     	System.out.println("MyProduct");
     }
     
     @FXML
     private void onClickedRankChart(ActionEvent event) {
+    	mainApp.procGetProductInfo();
+    	rankChartController.refresh();
     	paneRankChart.toFront();
     	System.out.println("RankChart");
     }
@@ -98,8 +98,7 @@ public class RootLayoutController implements Initializable {
         	System.exit(0);
         }
     }
-    
-    
+   
     /*
      * modeless dialog
      * create allproduct
@@ -108,20 +107,19 @@ public class RootLayoutController implements Initializable {
 	*/
     @Override
     public void initialize(URL url, ResourceBundle rb) {  	
-    	procGetCategoryInfo();
-		procGetCompanyInfo();
-    }    
+    	
+    }
+    
+    public void lazyInitialize() {
+    	mainApp.procGetCategoryInfo();
+    	mainApp.procGetCompanyInfo();
+    	mainApp.procGetProductInfo();
+    	
+    	myInfo = CustomerMySelf.getInstance();
+    	txtMyPoint.setText(Integer.toString(myInfo.getCustomer().getCoin()));
+    }
     public void createSegment() {
     	fxmlLoader = new FXMLLoader[segment];
-    	
-    	/*
-    	stageData = new Stage[segment];
-    	for(int i=0; i<stageData.length; i++) {
-    		stageData[i] = new Stage(StageStyle.UNDECORATED);
-    		stageData[i].initOwner(currentStage);
-    	}
-    	*/
-    	//layoutData = new AnchorPane[segment];
     	
     	for(int i=0; i<segment; i++) {
     		try {
@@ -129,23 +127,27 @@ public class RootLayoutController implements Initializable {
     			fxmlLoader[i] = new FXMLLoader();
     			
     			fxmlLoader[i].setLocation(MainApp.class.getResource(strFXMLPath));
-				//layoutData[i] = fxmlLoader[i].load();
-				//rootLayout.setCenter(layoutData[i])
 				switch(i) {
 				case 0:
 					paneAllProduct = fxmlLoader[i].load();
 					allProductController = fxmlLoader[i].getController();
 					allProductController.setMainApp(mainApp);
-					
+					allProductController.loadProduct(true);
 					break;
 				case 1:
 					paneMyProduct = fxmlLoader[i].load();
 					myProductController = fxmlLoader[i].getController();
 					myProductController.setMainApp(mainApp);
+					myProductController.loadMyInfo();
+					myProductController.loadProduct_sel(true);
+					myProductController.loadProduct_buy(true);
+					
 					break;
 				case 2:
 					paneRankChart = fxmlLoader[i].load();
 					rankChartController = fxmlLoader[i].getController();
+					rankChartController.setMainApp(mainApp);
+					
 					break;
 				default :
 					break;
@@ -158,70 +160,15 @@ public class RootLayoutController implements Initializable {
     	paneSegment.getChildren().add(paneAllProduct);
     	paneSegment.getChildren().add(paneMyProduct);
     	paneSegment.getChildren().add(paneRankChart);
-    	//paneSegment.toBack();
+    	paneAllProduct.toFront();
     	
     }
-    private boolean procGetCategoryInfo() {
-		   OracleCallableStatement ocstmt = null;
-		   
-		   daoCategory = DAOCategory.getInstance();
-		   String runP = "{ call get_category_info(?)}";
-		   
-		   try {
-			   Connection conn = DBConnection.getConnection();
-			   Statement stmt = conn.createStatement();
-			   CallableStatement callableStatement = conn.prepareCall(runP.toString());
-			   callableStatement.registerOutParameter(1, OracleTypes.CURSOR);
-			   callableStatement.executeUpdate();	
-			   ocstmt = (OracleCallableStatement)callableStatement;
-
-			   ResultSet rs =  ocstmt.getCursor(1);
-			   while (rs.next()) {
-				   Category<Integer, String> categorys = new Category<>();
-				   categorys.setCategory(rs.getInt("id"), rs.getString("name"));
-				   System.out.println(categorys.getCategoryID()+" "+categorys.getCategoryName());
-				   daoCategory.addCategory(categorys);
-			   }
-			   
-		   } catch(Exception e) {
-			   e.printStackTrace();
-			   return false;
-		   }
-		   return true;
-	   }
-	   
-	   private boolean procGetCompanyInfo() {
-		   OracleCallableStatement ocstmt = null;
-		   
-		   daoCompany = DAOCompany.getInstance();
-		   String runP = "{ call get_company_info(?)}";
-		   
-		   try {
-			   Connection conn = DBConnection.getConnection();
-			   Statement stmt = conn.createStatement();
-			   CallableStatement callableStatement = conn.prepareCall(runP.toString());
-			   callableStatement.registerOutParameter(1, OracleTypes.CURSOR);
-			   callableStatement.executeUpdate();	
-			   ocstmt = (OracleCallableStatement)callableStatement;
-
-			   ResultSet rs =  ocstmt.getCursor(1);
-			   while (rs.next()) {
-				   Company<Integer, String> companys = new Company<>();
-				   companys.setCompany(rs.getInt("id"), rs.getString("name"));
-				   System.out.println(companys.getCompanyID()+" "+companys.getCompanyName());
-				   daoCompany.addCompany(companys);
-			   }
-			   
-		   } catch(Exception e) {
-			   e.printStackTrace();
-			   return false;
-		   }
-		   return true;
-	   }
-	   
-	   
+   
+	
     @FXML
     private void onBtnClickedCheckPoint(ActionEvent event) {
+    	mainApp.procCallCustomerInfo(myInfo.getCustomer().getName());
+    	txtMyPoint.setText(Integer.toString(myInfo.getCustomer().getCoin()));
     	System.out.println("내마일리지 확인");
     }
     
@@ -236,4 +183,5 @@ public class RootLayoutController implements Initializable {
     public void setDialogStage(Stage dialog) {
     	this.currentStage = dialog;
     }
+    
 }
